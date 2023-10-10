@@ -1,10 +1,9 @@
 
-const express = require('express');
+import express from "express";
 const router = express.Router();
-const Comment = require('../models/commentModel'); 
-const authMiddleware = require('../middleware/auth');
+import Comment  from '../models/commentModel.js'; 
 
-router.post('/comments', authMiddleware, async (req, res) => {
+router.post('/comments', async (req, res) => {
   try {
     const comment = new Comment({
       text: req.body.text,
@@ -18,7 +17,7 @@ router.post('/comments', authMiddleware, async (req, res) => {
   }
 });
 
-router.put('/comments/:id', authMiddleware, async (req, res) => {
+router.put('/comments/:id', async (req, res) => {
   try {
     const updatedComment = await Comment.findByIdAndUpdate(
       req.params.id,
@@ -31,7 +30,7 @@ router.put('/comments/:id', authMiddleware, async (req, res) => {
   }
 });
 
-router.delete('/comments/:id', authMiddleware, async (req, res) => {
+router.delete('/comments/:id', async (req, res) => {
   try {
     await Comment.findByIdAndDelete(req.params.id);
     res.status(204).end();
@@ -49,4 +48,4 @@ router.get('/comments/:post_id', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

@@ -20,7 +20,7 @@ app.use("/auth", authRoutes);
 app.use("/", commentRoutes);
 
 mongoose
-  .connect(process.env.MONGO_URL, {
+  .connect(process.env.DB_CONNECTION, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
