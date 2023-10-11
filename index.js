@@ -5,6 +5,7 @@ import cors from "cors";
 
 import { register } from "./controllers/auth.js";
 import authRoutes from "./routes/auth.js";
+import postRoutes from "./routes/posts.js";
 
 dotenv.config();
 const app = express();
@@ -16,6 +17,7 @@ const PORT = process.env.PORT || 9999;
 app.post("/auth/register", register);
 
 app.use("/auth", authRoutes);
+app.use("/posts", postRoutes);
 
 mongoose
   .connect(process.env.MONGO_URL, {
