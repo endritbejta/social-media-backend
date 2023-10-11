@@ -18,9 +18,10 @@
   "main": "index.js",
   "type": "module",
   "devDependencies": {
-    "nodemon":"^1.19.2"
+    "nodemon": "^1.19.2"
   },
   "scripts": {
+    "devStart": "nodemon server.js",
     "start": "nodemon index.js"
   },
   "keywords": [],
