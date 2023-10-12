@@ -5,8 +5,12 @@ import cors from "cors";
 
 import { register } from "./controllers/auth.js";
 import authRoutes from "./routes/auth.js";
+
 import postRoutes from "./routes/posts.js";
 import userRoutes from "./routes/user.js";
+
+import commentRoutes from "./routes/comment.routes.js"
+
 
 dotenv.config();
 const app = express();
@@ -17,11 +21,16 @@ const PORT = process.env.PORT || 9999;
 
 app.post("/auth/register", register);
 app.use("/auth", authRoutes);
+
 app.use("/post", postRoutes);
 app.use("/user", userRoutes);
 
+app.use("/", commentRoutes);
+
+
+
 mongoose
-  .connect(process.env.MONGO_URL, {
+  .connect(process.env.DB_CONNECTION, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
