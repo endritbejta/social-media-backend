@@ -5,7 +5,7 @@ import cors from "cors";
 import jwt from 'jsonwebtoken';
 import { register } from "./controllers/auth.js";
 import authRoutes from "./routes/auth.js";
-import commentRoutes from "./routes/commentRoutes.js"
+import commentRoutes from "./routes/comment.routes.js"
 
 dotenv.config();
 const app = express();
