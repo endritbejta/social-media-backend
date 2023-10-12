@@ -76,7 +76,7 @@ export const deletePost = async (req, res) => {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    await post.remove();
+    await post.deleteOne();
 
     res.status(200).json({ message: "Post deleted successfully" });
   } catch (err) {

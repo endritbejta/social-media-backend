@@ -2,10 +2,11 @@ import express from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import cors from "cors";
-import jwt from "jsonwebtoken";
+
 import { register } from "./controllers/auth.js";
 import authRoutes from "./routes/auth.js";
 import postRoutes from "./routes/posts.js";
+import userRoutes from "./routes/user.js";
 
 dotenv.config();
 const app = express();
@@ -16,7 +17,8 @@ const PORT = process.env.PORT || 9999;
 
 app.post("/auth/register", register);
 app.use("/auth", authRoutes);
-app.use("/posts", postRoutes);
+app.use("/post", postRoutes);
+app.use("/user", userRoutes);
 
 mongoose
   .connect(process.env.MONGO_URL, {
