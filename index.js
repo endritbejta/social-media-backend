@@ -5,6 +5,7 @@ import cors from "cors";
 import jwt from 'jsonwebtoken';
 import { register } from "./controllers/auth.js";
 import authRoutes from "./routes/auth.js";
+import commentRoutes from "./routes/commentRoutes.js"
 
 dotenv.config();
 const app = express();
@@ -16,10 +17,11 @@ const PORT = process.env.PORT || 9999;
 
 app.post("/auth/register", register);
 app.use("/auth", authRoutes);
+app.use("/", commentRoutes);
 
 
 mongoose
-  .connect(process.env.MONGO_URL, {
+  .connect(process.env.DB_CONNECTION, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
