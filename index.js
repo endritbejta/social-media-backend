@@ -11,10 +11,11 @@ import postRoutes from "./routes/posts.js";
 import userRoutes from "./routes/user.js";
 
 import commentRoutes from "./routes/comment.routes.js";
+import homeRoutes from './routes/home.routes.js'
 
 dotenv.config();
 
-// dbConnection();
+dbConnection();
 
 
 const app = express();
@@ -31,6 +32,7 @@ app.use("/post", postRoutes);
 app.use("/user", userRoutes);
 
 app.use("/", commentRoutes);
+app.use('/home', homeRoutes);
 
 
 app.set("view engine", "ejs");
@@ -39,9 +41,13 @@ app.get("/login", (req, res) => {
   res.render("login.ejs");
 });
 
+app.get("/home", (req, res) => {
+  res.render("home.ejs");
+});
+
 
 mongoose
-  .connect(process.env.MONGO_URL, {
+  .connect(process.env.DB_CONNECTION, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
