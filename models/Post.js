@@ -5,13 +5,12 @@ const PostSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  title: {
+  description: {
     type: String,
     required: true,
   },
-  content: {
+  picture: {
     type: String,
-    required: true,
   },
   likes: {
     type: Map,
@@ -22,6 +21,12 @@ const PostSchema = new mongoose.Schema({
     type: Array,
     default: [],
   },
+  savedBy: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,
