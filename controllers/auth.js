@@ -29,6 +29,7 @@ export const register = async (req, res) => {
       lastName,
       email,
       password: passwordHash,
+      confirmPassword: passwordHash,
       gender,
       birthday,
       age,
@@ -48,12 +49,23 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email: email });
-    if (!user) return res.status(400).json({ msg: "User does not exist!" });
+    if (!user) return res.status(400).json({ msg: "Invalid credentials!" });
+
+    console.log("Email in request:", email);
+    console.log("User found in the database:", user);
+
+    console.log('Email in request:', email);
+    console.log('User found in the database:', user);
+
+
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: "Invalid credentials!" });
 
+
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    console.log(token)
+
 
     delete user.password;
 
