@@ -3,7 +3,7 @@ import User from "../models/User.js";
 
 export const createPost = async (req, res) => {
   try {
-    const { userId, title, content } = req.body;
+    const { userId, description, picture } = req.body;
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -11,8 +11,8 @@ export const createPost = async (req, res) => {
 
     const newPost = new Post({
       userId,
-      title,
-      content,
+      description,
+      picture,
       likes: {},
       comments: [],
       createdAt: new Date(),
@@ -48,15 +48,20 @@ export const readUserPosts = async (req, res) => {
 export const updatePost = async (req, res) => {
   try {
     const { postId } = req.params;
-    const { title, content } = req.body;
+    const { description, picture } = req.body;
 
     const post = await Post.findById(postId);
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    post.title = title;
-    post.content = content;
+    if (description !== undefined) {
+      post.description = description;
+    }
+
+    if (picture !== undefined) {
+      post.picture = picture;
+    }
     post.updatedAt = new Date();
 
     await post.save();
@@ -79,6 +84,44 @@ export const deletePost = async (req, res) => {
     await post.deleteOne();
 
     res.status(200).json({ message: "Post deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const savePost = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.body.userId;
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found!" });
+    }
+    if (!post.savedBy.includes(userId)) {
+      post.savedBy.push(userId);
+      await post.save();
+    }
+    res.status(200).json({ message: "Post saved successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const removeSavePost = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.body.userId;
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found!" });
+    }
+    const userIndex = post.savedBy.indexOf(userId);
+    if (userIndex !== -1) {
+      post.savedBy.splice(userIndex, 1);
+      await post.save();
+    }
+    res.json(post);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
