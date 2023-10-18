@@ -34,7 +34,7 @@ export const register = async (req, res) => {
       birthday,
     });
     const user = await User.findOne({ email: email });
-    if (user) return res.status(400).json({ msg: "User exists!" });
+    if (user) return res.send({ msg: "User exists!" });
 
     const savedUser = await newUser.save();
     res.status(201).json(savedUser);
