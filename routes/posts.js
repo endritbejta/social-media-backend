@@ -8,6 +8,7 @@ import {
   savePost,
   removeSavePost,
 } from "../controllers/post.js";
+import { likePost } from "../controllers/likePost.js";
 
 const router = express.Router();
 
@@ -19,5 +20,7 @@ router.delete("/posts/:postId", deletePost);
 
 router.post("/posts/:postId/save", savePost);
 router.delete("/posts/:postId/unsave", removeSavePost);
+
+router.post("/posts/like",likePost);
 
 export default router;
