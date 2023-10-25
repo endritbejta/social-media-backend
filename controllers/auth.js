@@ -12,6 +12,7 @@ export const register = async (req, res) => {
       password,
       confirmPassword,
       gender,
+      friends,
       birthday,
     } = req.body;
 
@@ -31,6 +32,7 @@ export const register = async (req, res) => {
       password: passwordHash,
       confirmPassword: passwordHash,
       gender,
+      friends,
       birthday,
     });
     const user = await User.findOne({ email: email });
