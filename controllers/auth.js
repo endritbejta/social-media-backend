@@ -1,8 +1,8 @@
 import bcrypt from "bcrypt";
-import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 
-/* REGISTER USER */
+import User from "../models/User.js";
+
 export const register = async (req, res) => {
   try {
     const {
@@ -34,38 +34,32 @@ export const register = async (req, res) => {
       birthday,
     });
     const user = await User.findOne({ email: email });
-    if (user) return res.send({ msg: "User exists!" });
+
+    if (user) return res.status(400).json({ error: "User exists!" });
 
     const savedUser = await newUser.save();
-    res.status(201).json(savedUser);
+    return res.status(201).json(savedUser);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
 
-/* LOGGING IN */
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email: email });
-    if (!user) return res.status(400).json({ msg: "Invalid credentials!" });
-
-    console.log("Email in request:", email);
-    console.log("User found in the database:", user);
-
-    console.log("Email in request:", email);
-    console.log("User found in the database:", user);
+    if (!user) return res.status(400).json({ error: "Invalid credentials!" });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ msg: "Invalid credentials!" });
+    if (!isMatch)
+      return res.status(400).json({ error: "Invalid credentials!" });
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-    console.log(token);
 
     delete user.password;
 
-    res.status(200).json({ token, user });
+    return res.status(200).json({ token, user });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
