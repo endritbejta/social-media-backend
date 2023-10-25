@@ -1,25 +1,39 @@
 import express from "express";
+import multer from "multer";
+
 import {
   createPost,
-  readPosts,
-  readUserPosts,
+  getPosts,
+  getPost,
   updatePost,
   deletePost,
+  getLikesForPost,
+  likePost,
+  unlikePost,
   savePost,
-  removeSavePost,
+  unsavePost,
 } from "../controllers/post.js";
 import { likePost } from "../controllers/likePost.js";
 
 const router = express.Router();
 
-router.post("/posts", createPost);
-router.get("/posts", readPosts);
-router.get("/posts/:userId", readUserPosts);
+const upload = multer({ storage: multer.memoryStorage() });
+
+// Post
+router.post("/posts", upload.array("images", 5), createPost);
+router.get("/posts", getPosts);
+router.get("/posts/:postId", getPost);
 router.put("/posts/:postId", updatePost);
 router.delete("/posts/:postId", deletePost);
 
+// Post like
+router.get("/posts/:postId/likes", getLikesForPost);
+router.post("/posts/:postId/like", likePost);
+router.delete("/posts/:postId/unlike", unlikePost);
+
+// Save post
 router.post("/posts/:postId/save", savePost);
-router.delete("/posts/:postId/unsave", removeSavePost);
+router.delete("/posts/:postId/unsave", unsavePost);
 
 router.post("/posts/like",likePost);
 

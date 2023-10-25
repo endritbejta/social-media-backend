@@ -1,47 +1,71 @@
 import Post from "../models/Post.js";
 import User from "../models/User.js";
+import Like from "../models/Like.js";
+import Comment from "../models/Comment.js";
+import SavedPost from "../models/SavedPost.js";
+
+import { insertMultipleObjects } from "../aws/S3Client.js";
 
 export const createPost = async (req, res) => {
   try {
-    const { userId, description, picture } = req.body;
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    let pictures = [];
+
+    console.log("req.files", req.files);
+    console.log("req.body", req.body);
+
+    // If there are any pictures, store them to S3
+    if (req.files) {
+      const keys = await insertMultipleObjects(req.files);
+      pictures = keys;
     }
 
     const newPost = new Post({
-      userId,
-      description,
-      picture,
-      likes: {},
-      comments: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      userId: req.body.userId,
+      description: req.body.description,
+      pictures,
     });
 
     await newPost.save();
 
-    res.status(201).json(newPost);
+    return res.status(201).json(newPost);
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
 };
 
-export const readPosts = async (req, res) => {
+export const getPosts = async (req, res) => {
   try {
-    const posts = await Post.find();
-    res.status(200).json(posts);
+    const posts = await Post.find().populate("likes").populate("comments");
+    return res.status(200).json(posts);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
-export const readUserPosts = async (req, res) => {
+
+export const getPost = async (req, res) => {
+  try {
+    const id = req.params.postId;
+    const post = await Post.findOne({ _id: id })
+      .populate("likes")
+      .populate("comments");
+    if (!post) {
+      return res.status(404).json({ error: "Post does not exist" });
+    }
+    return res.status(200).json(post);
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+export const getUserPosts = async (req, res) => {
   try {
     const { userId } = req.params;
-    const posts = await Post.find({ userId });
-    res.status(200).json(posts);
+    const posts = await Post.find({ userId })
+      .populate("likes")
+      .populate("comments");
+    return res.status(200).json(posts);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
 
@@ -66,9 +90,9 @@ export const updatePost = async (req, res) => {
 
     await post.save();
 
-    res.status(200).json(post);
+    return res.status(200).json(post);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
 export const deletePost = async (req, res) => {
@@ -82,9 +106,9 @@ export const deletePost = async (req, res) => {
 
     await post.deleteOne();
 
-    res.status(200).json({ message: "Post deleted successfully" });
+    return res.status(200).json({ message: "Post deleted successfully" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
 
@@ -93,36 +117,115 @@ export const savePost = async (req, res) => {
     const postId = req.params.postId;
     const userId = req.body.userId;
 
+    const savedPost = await SavedPost.findOne({ $where: { postId, userId } });
+    if (savedPost !== null) {
+      return res.status(400).json({ message: "Post is already saved" });
+    }
+
     const post = await Post.findById(postId);
     if (!post) {
       return res.status(404).json({ message: "Post not found!" });
     }
-    if (!post.savedBy.includes(userId)) {
-      post.savedBy.push(userId);
-      await post.save();
-    }
-    res.status(200).json({ message: "Post saved successfully" });
+
+    const newSavedPost = new SavedPost({
+      postId,
+      userId,
+      folderId: req.body.folderId,
+    });
+
+    await newSavedPost.save();
+
+    return res.status(200).json({ message: "Post saved successfully" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
 
-export const removeSavePost = async (req, res) => {
+export const unsavePost = async (req, res) => {
   try {
     const postId = req.params.postId;
     const userId = req.body.userId;
-    const post = await Post.findById(postId);
-    if (!post) {
-      return res.status(404).json({ message: "Post not found!" });
+
+    const savedPost = await SavedPost.findOne({ $where: { postId, userId } });
+    if (savedPost === null) {
+      return res.status(404).json({ message: "Post is not saved" });
     }
-    const userIndex = post.savedBy.indexOf(userId);
-    if (userIndex !== -1) {
-      post.savedBy.splice(userIndex, 1);
-      await post.save();
-    }
-    res.json(post);
+
+    await SavedPost.deleteOne({ $where: { _id: savedPost._id } });
+
+    return res.status(200).json({ message: "Post unsaved" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+export const likePost = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.body.userId;
+
+    const like = await Like.findOne({
+      postId,
+      userId,
+    });
+
+    if (like !== null) {
+      return res.status(400).json({ message: "Post already liked" });
+    }
+
+    const newLike = new Like({
+      postId,
+      userId,
+    });
+
+    newLike.save();
+    return res.status(201).json({ message: "Post liked", newLike });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+export const unlikePost = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.body.userId;
+
+    const like = await Like.findOne({
+      postId,
+      userId,
+    });
+
+    if (like === null) {
+      return res.status(400).json({ message: "Post is not liked" });
+    }
+
+    await Like.deleteOne({ _id: like._id });
+    return res.status(201).json({ message: "Post unliked" });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+export const getLikesForPost = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+
+    const likes = await Like.find({ postId }).populate({
+      path: "userId",
+      select: "firstName lastName",
+    });
+
+    const getLikes = likes.map((like) => {
+      return {
+        userId: like.userId._id,
+        firstName: like.userId.firstName,
+        lastName: like.userId.lastName,
+      };
+    });
+
+    return res.status(200).json(getLikes);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
 };
 //@route PUT api/post/like/:Id

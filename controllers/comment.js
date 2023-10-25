@@ -1,4 +1,4 @@
-import Comment from '../models/commentModel.js';
+import Comment from "../models/Comment.js";
 
 export const createComment = async (req, res) => {
   try {
@@ -13,9 +13,9 @@ export const createComment = async (req, res) => {
 
     const newComment = await comment.save();
 
-    res.status(201).json(newComment);
+    return res.status(201).json(newComment);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    return res.status(400).json({ error: error.message });
   }
 };
 
@@ -30,9 +30,9 @@ export const updateComment = async (req, res) => {
       { new: true }
     );
 
-    res.json(updatedComment);
+    return res.json(updatedComment);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    return res.status(400).json({ error: error.message });
   }
 };
 
@@ -42,9 +42,9 @@ export const deleteComment = async (req, res) => {
 
     await Comment.findByIdAndDelete(id);
 
-    res.status(204).end();
+    return res.status(204).end();
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    return res.status(400).json({ error: error.message });
   }
 };
 
@@ -54,8 +54,8 @@ export const getCommentsForPost = async (req, res) => {
 
     const comments = await Comment.find({ post_id });
 
-    res.json(comments);
+    return res.json(comments);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    return res.status(400).json({ error: error.message });
   }
 };
