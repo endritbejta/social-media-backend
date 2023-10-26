@@ -2,12 +2,12 @@ import Comment from "../models/Comment.js";
 
 export const createComment = async (req, res) => {
   try {
-    const { text, post_id } = req.body;
-    const author = req.user._id;
+    const { content, postId } = req.body;
+    const author = req.userId;
 
     const comment = new Comment({
-      text,
-      post_id,
+      content,
+      postId,
       author,
     });
 
@@ -22,11 +22,11 @@ export const createComment = async (req, res) => {
 export const updateComment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { text } = req.body;
+    const { content } = req.body;
 
     const updatedComment = await Comment.findByIdAndUpdate(
       id,
-      { text },
+      { content },
       { new: true }
     );
 
@@ -50,9 +50,9 @@ export const deleteComment = async (req, res) => {
 
 export const getCommentsForPost = async (req, res) => {
   try {
-    const { post_id } = req.params;
+    const { postId } = req.params;
 
-    const comments = await Comment.find({ post_id });
+    const comments = await Comment.find({ postId });
 
     return res.json(comments);
   } catch (error) {
