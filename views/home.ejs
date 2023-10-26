@@ -1,0 +1,32 @@
+<html>
+
+<head>
+    <title>Home</title>
+</head>
+
+<body>
+    <h1>Welcome, <%= user.firstName %>!</h1>
+    <h2>Posts</h2>
+    <ul>
+        <% posts.forEach(post=> { %>
+            <li>
+                <h3>
+                    <%= post.title %>
+                </h3>
+                <p>
+                    <%= post.content %>
+                </p>
+                <h4>Comments</h4>
+                <ul>
+                    <% post.comments.forEach(comment=> { %>
+                        <li>
+                            <%= comment.text %>
+                        </li>
+                        <% }); %>
+                </ul>
+            </li>
+            <% }); %>
+    </ul>
+</body>
+
+</html>
