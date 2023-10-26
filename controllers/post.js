@@ -88,6 +88,24 @@ export const createPost = async (req, res) => {
   }
 };
 
+export const getPostPictures = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found." });
+    }
+
+    const pictures = post.pictures;
+
+    return res.status(200).json(pictures);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+
 export const getPosts = async (req, res) => {
   try {
     const posts = await Post.find().populate("likes").populate("comments");
