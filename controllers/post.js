@@ -4,7 +4,7 @@ import Like from "../models/Like.js";
 import Comment from "../models/Comment.js";
 import SavedPost from "../models/SavedPost.js";
 
-import { insertMultipleObjects } from "../aws/S3Client.js";
+// import { insertMultipleObjects } from "../aws/S3Client.js";
 
 import path from "path";
 import fs from "fs";
