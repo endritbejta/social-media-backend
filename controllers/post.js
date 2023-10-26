@@ -6,30 +6,85 @@ import SavedPost from "../models/SavedPost.js";
 
 import { insertMultipleObjects } from "../aws/S3Client.js";
 
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+// export const createPost = async (req, res) => {
+//   try {
+//     let pictures = [];
+
+//     console.log("req.files", req.files);
+//     console.log("req.body", req.body);
+
+//     // If there are any pictures, store them to S3
+//     if (req.files) {
+//       const keys = await insertMultipleObjects(req.files);
+//       pictures = keys;
+//     }
+
+//     const newPost = new Post({
+//       userId: req.body.userId,
+//       description: req.body.description,
+//       pictures,
+//     });
+
+//     await newPost.save();
+
+//     return res.status(201).json(newPost);
+//   } catch (err) {
+//     return res.status(500).json({ message: err.message });
+//   }
+// };
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const uploadDirectory = path.join(__dirname, "../uploads");
+
 export const createPost = async (req, res) => {
   try {
-    let pictures = [];
+    const { userId, description } = req.body;
+    const pictures = req.files;
 
-    console.log("req.files", req.files);
-    console.log("req.body", req.body);
+    if (!userId || !description) {
+      return res
+        .status(400)
+        .json({ message: "UserId and description are required." });
+    }
 
-    // If there are any pictures, store them to S3
-    if (req.files) {
-      const keys = await insertMultipleObjects(req.files);
-      pictures = keys;
+    const pictureUrls = [];
+
+    if (pictures && pictures.length > 0) {
+      if (!fs.existsSync(uploadDirectory)) {
+        fs.mkdirSync(uploadDirectory);
+      }
+
+      pictures.forEach((file, index) => {
+        const ext = path.extname(file.originalname);
+        const fileName = `image_${Date.now()}_${index}${ext}`;
+
+        const filePath = path.join(uploadDirectory, fileName);
+        fs.writeFileSync(filePath, file.buffer);
+
+        const fileUrl = `/uploads/${fileName}`;
+        pictureUrls.push(fileUrl);
+      });
     }
 
     const newPost = new Post({
-      userId: req.body.userId,
-      description: req.body.description,
-      pictures,
+      userId,
+      description,
+      pictures: pictureUrls,
     });
 
     await newPost.save();
 
     return res.status(201).json(newPost);
   } catch (err) {
-    return res.status(500).json({ message: err.message });
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error." });
   }
 };
 
