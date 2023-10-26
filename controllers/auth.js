@@ -1,7 +1,8 @@
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+
 import User from "../models/User.js";
 
-/* REGISTER USER */
 export const register = async (req, res) => {
   try {
     const {
@@ -11,8 +12,8 @@ export const register = async (req, res) => {
       password,
       confirmPassword,
       gender,
+      friends,
       birthday,
-      age,
     } = req.body;
 
     if (password !== confirmPassword) {
@@ -31,46 +32,40 @@ export const register = async (req, res) => {
       password: passwordHash,
       confirmPassword: passwordHash,
       gender,
+      friends,
       birthday,
-      age,
     });
     const user = await User.findOne({ email: email });
-    if (user) return res.status(400).json({ msg: "User exists!" });
+
+    if (user) return res.status(400).json({ error: "User exists!" });
 
     const savedUser = await newUser.save();
-    res.status(201).json(savedUser);
+    return res.status(201).json(savedUser);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
 
-/* LOGGING IN */
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email: email });
-    if (!user) return res.status(400).json({ msg: "Invalid credentials!" });
-
-    console.log("Email in request:", email);
-    console.log("User found in the database:", user);
-
-    console.log('Email in request:', email);
-    console.log('User found in the database:', user);
-
-
+    if (!user) return res.status(400).json({ error: "Invalid credentials!" });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ msg: "Invalid credentials!" });
+    if (!isMatch)
+      return res.status(400).json({ error: "Invalid credentials!" });
 
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-    console.log(token)
+    const token = jwt.sign(
+      { email: user.email, password: password },
+      `${process.env.JWT_SECRET}`
+    );
 
 
     delete user.password;
 
-    res.status(200).json({ token, user });
+    return res.status(200).json({ token, user });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };

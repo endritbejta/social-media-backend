@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.433.0",
+    "aws-sdk": "^2.1479.0",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
@@ -22,7 +24,7 @@
     "nodemon": "^1.19.2"
   },
   "scripts": {
-    "devStart": "nodemon server.js",
+    "dev": "nodemon index.js",
     "start": "nodemon index.js"
   },
   "keywords": [],
