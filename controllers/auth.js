@@ -61,7 +61,6 @@ export const login = async (req, res) => {
       `${process.env.JWT_SECRET}`
     );
 
-
     delete user.password;
 
     return res.status(200).json({ token, user });
