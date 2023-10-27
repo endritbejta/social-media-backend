@@ -189,7 +189,7 @@ export const savePost = async (req, res) => {
     const postId = req.params.postId;
     const userId = req.body.userId;
 
-    const savedPost = await SavedPost.findOne({ $where: { postId, userId } });
+    const savedPost = await SavedPost.findOne({ postId, userId });
     if (savedPost !== null) {
       return res.status(400).json({ message: "Post is already saved" });
     }
@@ -218,12 +218,12 @@ export const unsavePost = async (req, res) => {
     const postId = req.params.postId;
     const userId = req.body.userId;
 
-    const savedPost = await SavedPost.findOne({ $where: { postId, userId } });
+    const savedPost = await SavedPost.findOne({ postId, userId });
     if (savedPost === null) {
       return res.status(404).json({ message: "Post is not saved" });
     }
 
-    await SavedPost.deleteOne({ $where: { _id: savedPost._id } });
+    await SavedPost.deleteOne({ _id: savedPost._id });
 
     return res.status(200).json({ message: "Post unsaved" });
   } catch (err) {
