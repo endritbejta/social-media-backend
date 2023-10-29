@@ -1,9 +1,10 @@
 import FriendRequest from "../models/friendRequest.js";
+import Users from "../models/User.js";
 
 export const friendRequest = async (req, res, next) => {
+  console.log(req.body);
   try {
     const { userId } = req.body.user;
-
     const { requestTo } = req.body;
 
     const requestExist = await FriendRequest.findOne({
@@ -38,7 +39,7 @@ export const friendRequest = async (req, res, next) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({
-      message: "auth error",
+      message: "auth  request error",
       success: false,
       error: error.message,
     });
@@ -55,7 +56,7 @@ export const getFriendRequest = async (req, res) => {
     })
       .populate({
         path: "requestFrom",
-        select: "firstName lastName profileUrl profession -password",
+        select: "firstName lastName",
       })
       .limit(10)
       .sort({
@@ -69,7 +70,7 @@ export const getFriendRequest = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({
-      message: "auth error",
+      message: "auth getreq error",
       success: false,
       error: error.message,
     });
@@ -100,7 +101,6 @@ export const acceptRequest = async (req, res, next) => {
       user.friends.push(newRes?.requestFrom);
 
       await user.save();
-
       const friend = await Users.findById(newRes?.requestFrom);
 
       friend.friends.push(newRes?.requestTo);
@@ -115,7 +115,7 @@ export const acceptRequest = async (req, res, next) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({
-      message: "auth error",
+      message: "auth accept error",
       success: false,
       error: error.message,
     });
