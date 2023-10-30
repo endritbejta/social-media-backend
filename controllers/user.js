@@ -14,7 +14,6 @@ export const createUser = async (req, res) => {
       password,
       confirmPassword,
       gender,
-      friends,
       birthday,
       age,
     } = req.body;
@@ -26,7 +25,6 @@ export const createUser = async (req, res) => {
       password,
       confirmPassword,
       gender,
-      friends,
       birthday,
       age,
     });
