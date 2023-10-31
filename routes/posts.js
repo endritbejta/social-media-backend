@@ -14,6 +14,7 @@ import {
   savePost,
   unsavePost,
 } from "../controllers/post.js";
+import { likePost } from "../controllers/likePost.js";
 
 const router = express.Router();
 
@@ -35,5 +36,7 @@ router.delete("/posts/:postId/unlike", unlikePost);
 // Save post
 router.post("/posts/:postId/save", savePost);
 router.delete("/posts/:postId/unsave", unsavePost);
+
+router.post("/posts/like",likePost);
 
 export default router;
