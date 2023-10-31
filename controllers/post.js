@@ -9,6 +9,7 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
+//Mos ma fshini ju lutem
 // export const createPost = async (req, res) => {
 //   try {
 //     let pictures = [];
@@ -52,6 +53,12 @@ export const createPost = async (req, res) => {
         .json({ message: "UserId and description are required." });
     }
 
+    const user = await User.findOne({
+      _id: userId,
+    });
+
+    const { firstName, lastName } = user;
+
     const pictureUrls = [];
 
     if (pictures && pictures.length > 0) {
@@ -75,6 +82,7 @@ export const createPost = async (req, res) => {
       userId,
       description,
       pictures: pictureUrls,
+      author: firstName + " " + lastName,
     });
 
     await newPost.save();
@@ -122,6 +130,8 @@ export const getPost = async (req, res) => {
     if (!post) {
       return res.status(404).json({ error: "Post does not exist" });
     }
+    console.log("post", post);
+
     return res.status(200).json(post);
   } catch (err) {
     return res.status(500).json({ message: err.message });
@@ -189,7 +199,7 @@ export const savePost = async (req, res) => {
     const postId = req.params.postId;
     const userId = req.body.userId;
 
-    const savedPost = await SavedPost.findOne({ $where: { postId, userId } });
+    const savedPost = await SavedPost.findOne({ postId, userId });
     if (savedPost !== null) {
       return res.status(400).json({ message: "Post is already saved" });
     }
@@ -218,12 +228,12 @@ export const unsavePost = async (req, res) => {
     const postId = req.params.postId;
     const userId = req.body.userId;
 
-    const savedPost = await SavedPost.findOne({ $where: { postId, userId } });
+    const savedPost = await SavedPost.findOne({ postId, userId });
     if (savedPost === null) {
       return res.status(404).json({ message: "Post is not saved" });
     }
 
-    await SavedPost.deleteOne({ $where: { _id: savedPost._id } });
+    await SavedPost.deleteOne({ _id: savedPost._id });
 
     return res.status(200).json({ message: "Post unsaved" });
   } catch (err) {
@@ -244,14 +254,27 @@ export const likePost = async (req, res) => {
     if (like !== null) {
       return res.status(400).json({ message: "Post already liked" });
     }
+    const user = await User.findOne({
+      _id: userId,
+    });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
 
+    const { firstName, lastName } = user;
+
+    const author = firstName + " " + lastName;
     const newLike = new Like({
       postId,
       userId,
+      author: author,
     });
 
     newLike.save();
-    return res.status(201).json({ message: "Post liked", newLike });
+    return res.status(201).json({
+      message: "Post liked",
+      newLike: { author, postId, userId },
+    });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
