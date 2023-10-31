@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-
-import User from "../models/User.js";
+import Users from "../models/User.js";
+import { compareString, createJWT } from "../utils/helpers.js";
 
 export const register = async (req, res) => {
   try {
@@ -12,7 +12,6 @@ export const register = async (req, res) => {
       password,
       confirmPassword,
       gender,
-      friends,
       birthday,
     } = req.body;
 
@@ -22,22 +21,22 @@ export const register = async (req, res) => {
         .json({ error: "Password confirmation does not match the password." });
     }
 
+    const user = await Users.findOne({ email: email });
+
+    if (user) return res.status(400).json({ error: "User exists!" });
+
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
 
-    const newUser = new User({
+    const newUser = await Users.create({
       firstName,
       lastName,
       email,
       password: passwordHash,
       confirmPassword: passwordHash,
       gender,
-      friends,
       birthday,
     });
-    const user = await User.findOne({ email: email });
-
-    if (user) return res.status(400).json({ error: "User exists!" });
 
     const savedUser = await newUser.save();
     return res.status(201).json(savedUser);
@@ -46,25 +45,67 @@ export const register = async (req, res) => {
   }
 };
 
-export const login = async (req, res) => {
+export const login = async (req, res, next) => {
+  const { email, password } = req.body;
+
   try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email: email });
-    if (!user) return res.status(400).json({ error: "Invalid credentials!" });
+    //validation
+    if (!email || !password) {
+      next("Please Provide User Credentials");
+      return;
+    }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(400).json({ error: "Invalid credentials!" });
+    // find user by email
+    const user = await Users.findOne({ email }).select("+password").populate({
+      path: "friends",
+      select: "firstName lastName location profileUrl",
+    });
+    
+    if (!user) {
+      next("Invalid email or password");
+      return;
+    }
 
-    const token = jwt.sign(
-      { email: user.email, password: password },
-      `${process.env.JWT_SECRET}`
-    );
+    // compare password
+    const isMatch = await compareString(password, user?.password);
 
-    delete user.password;
+    if (!isMatch) {
+      next("Invalid email or password");
+      return;
+    }
 
-    return res.status(200).json({ token, user });
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
+    user.password = undefined;
+
+    const token = createJWT(user?._id);
+
+    res.status(201).json({
+      success: true,
+      message: "Login successfully",
+      user,
+      token,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({ message: error.message });
   }
 };
+
+// export const login = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+//     const user = await Users.findOne({ email: email });
+//     if (!user) return res.status(400).json({ error: "Invalid credentials!" });
+
+//     const isMatch = await bcrypt.compare(password, user.password);
+//     if (!isMatch)
+//       return res.status(400).json({ error: "Invalid credentials!" });
+
+//     const token = jwt.sign({ id: user._id }, `${process.env.JWT_SECRET}`);
+
+//     delete user.password;
+
+//     return res.status(200).json({ token, user });
+//   } catch (err) {
+//     return res.status(500).json({ error: err.message });
+//   }
+// };
