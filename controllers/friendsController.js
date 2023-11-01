@@ -56,7 +56,7 @@ export const getFriendRequest = async (req, res) => {
     })
       .populate({
         path: "requestFrom",
-        select: "firstName lastName",
+        select: "firstName lastName profileUrl",
       })
       .limit(10)
       .sort({
@@ -83,6 +83,17 @@ export const acceptRequest = async (req, res, next) => {
 
     const { rid, status } = req.body;
 
+    // !  added
+    const accountAccepted = await FriendRequest.findOne({
+      requestStatus: "Accepted",
+    });
+
+    if (accountAccepted) {
+      next("You already are friend with this user.");
+      return;
+    }
+    // ! end added
+
     const requestExist = await FriendRequest.findById(rid);
 
     if (!requestExist) {
@@ -108,6 +119,12 @@ export const acceptRequest = async (req, res, next) => {
       await friend.save();
     }
 
+    // ! reject added
+    if (status === "Rejected") {
+      const user = await FriendRequest.findByIdAndDelete(newRes);
+    }
+    // ! end of reject added
+
     res.status(201).json({
       success: true,
       message: "Friend Request " + status,
@@ -121,3 +138,7 @@ export const acceptRequest = async (req, res, next) => {
     });
   }
 };
+
+// !  profileviews
+
+// ! sugested friends
