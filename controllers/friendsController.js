@@ -91,7 +91,6 @@ export const acceptRequest = async (req, res, next) => {
     }
 
     const accountAccepted = await FriendRequest.findOne({
-      requestTo: id,
       _id: rid,
       requestStatus: "Accepted",
     });
