@@ -124,9 +124,7 @@ export const getPosts = async (req, res) => {
 export const getPost = async (req, res) => {
   try {
     const id = req.params.postId;
-    const post = await Post.findOne({ _id: id })
-      .populate("likes")
-      .populate("comments");
+    const post = await Post.findById(id).populate("likes").exec();
     if (!post) {
       return res.status(404).json({ error: "Post does not exist" });
     }
@@ -270,7 +268,13 @@ export const likePost = async (req, res) => {
       author: author,
     });
 
-    newLike.save();
+    await newLike.save();
+    await Post.findByIdAndUpdate(
+      postId,
+      { $push: { likes: newLike } },
+      { new: true }
+    );
+
     return res.status(201).json({
       message: "Post liked",
       newLike: { author, postId, userId },
@@ -290,9 +294,26 @@ export const unlikePost = async (req, res) => {
       userId,
     });
 
+    const user = await User.findOne({
+      _id: userId,
+    });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
     if (like === null) {
       return res.status(400).json({ message: "Post is not liked" });
     }
+
+    const { firstName, lastName } = user;
+
+    const author = firstName + " " + lastName;
+
+    await Post.findByIdAndUpdate(
+      postId,
+      { $pull: { likes: like._id } },
+      { new: true }
+    );
 
     await Like.deleteOne({ _id: like._id });
     return res.status(201).json({ message: "Post unliked" });
