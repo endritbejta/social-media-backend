@@ -83,21 +83,21 @@ export const acceptRequest = async (req, res, next) => {
 
     const { rid, status } = req.body;
 
-    // !  added
+    const requestExist = await FriendRequest.findById(rid);
+
+    if (!requestExist) {
+      next("No Friend Request Found.");
+      return;
+    }
+
     const accountAccepted = await FriendRequest.findOne({
+      requestTo: id,
+      _id: rid,
       requestStatus: "Accepted",
     });
 
     if (accountAccepted) {
       next("You already are friend with this user.");
-      return;
-    }
-    // ! end added
-
-    const requestExist = await FriendRequest.findById(rid);
-
-    if (!requestExist) {
-      next("No Friend Request Found.");
       return;
     }
 
@@ -123,7 +123,6 @@ export const acceptRequest = async (req, res, next) => {
     if (status === "Rejected") {
       const user = await FriendRequest.findByIdAndDelete(newRes);
     }
-    // ! end of reject added
 
     res.status(201).json({
       success: true,
