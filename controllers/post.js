@@ -176,6 +176,7 @@ export const updatePost = async (req, res) => {
     return res.status(500).json({ message: err.message });
   }
 };
+
 export const deletePost = async (req, res) => {
   try {
     const { postId } = req.params;
