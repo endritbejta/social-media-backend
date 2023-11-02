@@ -13,7 +13,6 @@ import {
   savePost,
   unsavePost,
 } from "../controllers/post.js";
-import { likePost } from "../controllers/likePost.js";
 
 const router = express.Router();
 
