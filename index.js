@@ -7,7 +7,7 @@ import friendsRoutes from "./routes/friends.routes.js";
 import authRoutes from "./routes/auth.js";
 import postRoutes from "./routes/posts.js";
 import userRoutes from "./routes/users.js";
-import commentRoutes from "./routes/comments.js";
+import commentRoutes from "./routes/comment.routes.js";
 
 dotenv.config();
 
