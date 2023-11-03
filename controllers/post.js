@@ -3,7 +3,6 @@ import User from "../models/User.js";
 import Like from "../models/Like.js";
 import Comments from "../models/CommentModel.js";
 import SavedPost from "../models/SavedPost.js";
-
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";

@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import About from "../models/About.js";
 
+
 /**
  * Created file only for creating basic users, has no authentication,
  * no authorization, will be deleted later on.

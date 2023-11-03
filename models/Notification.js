@@ -1,58 +1,35 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const app = express();
+const port = 3001;
 
-var admin = require("firebase-admin");
-var FCM = require("fcm-notification");
+app.use(bodyParser.json());
 
-var serviceAccount = require("./serviceAccountKey.json");
-const certPath = admin.credential.cert(serviceAccount);
-var FCMInstance = new FCM(certPath);
+const friendRequests = [];
+const notifications = [];
 
-// Function to send a notification
-function sendNotification(title, message, token, res) {
-    let notification = {
-        notification: {
-            title: title,
-            body: message
-        },
-        data: {
-            orderId: "123456",
-            orderDate: "2023-10-18"
-        },
-        token: token
-    };
+app.post('/friend-request', (req, res) => {
+  const { senderId, recipientId } = req.body;
 
-    FCMInstance.send(notification, function (err, response) {
-        if (err) {
-            console.error("Error sending notification:", err);
-            return res.status(500).send({
-                message: err
-            });
-        } else {
-            return res.status(200).send({
-                message: "Notification sent successfully"
-            });
-        }
-    });
-}
 
-exports.Notification = (req, res, next) => {
-    try {
-        sendNotification("Test Notification", "Notification Message", req.body.fcm_token, res);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send({
-            message: "Server error"
-        });
-    }
-};
+  friendRequests.push({ senderId, recipientId });
 
-exports.sendNotification = async (req, res) => {
-    try {
-        const { notificationTitle, notificationMessage, token } = req.body;
-        sendNotification(notificationTitle, notificationMessage, token, res);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send({
-            message: "Server error"
-        });
-    }
-};
+ 
+  const notification = {
+    recipientId,
+    message: `You have a new friend request from user ${senderId}`,
+  };
+  notifications.push(notification);
+
+  res.status(201).send('Friend request sent.');
+});
+
+app.get('/notifications/:userId', (req, res) => {
+  const userId = req.params.userId;
+  const userNotifications = notifications.filter((n) => n.recipientId === userId);
+  res.json(userNotifications);
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
