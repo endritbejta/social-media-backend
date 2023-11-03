@@ -17,6 +17,7 @@ import {
   getAllSavedPosts,
 } from "../controllers/post.js";
 
+
 const router = express.Router();
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -39,5 +40,7 @@ router.post("/posts/:postId/save", savePost);
 router.delete("/posts/:postId/unsave", unsavePost);
 router.get("/savedPosts/:userId", getUserSavedPosts);
 router.get("/savedPosts", getAllSavedPosts);
+
+router.post("/posts/like",likePost);
 
 export default router;
