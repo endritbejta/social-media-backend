@@ -111,3 +111,74 @@ app.get('/comment-notifications/:userId', (req, res) => {
   );
   res.json(userCommentNotifications);
 });
+
+///Follow Notifications: Notify users when someone starts following them or when someone they follow posts new content.
+// app.post('/follow-notification', (req, res) => {
+//   const { userId, followerId } = req.body;
+
+//   const notification = {
+//     type: 'follow',
+//     userId,
+//     followerId,
+//     message: 'You have a new follower.',
+//   };
+
+//   notifications.push(notification);
+
+//   res.status(201).send('Follow notification sent.');
+// });
+
+
+// Mention Notifications: Notify users when they are mentioned by another user in a comment, post, or message.
+app.post('/mention-notification', (req, res) => {
+  const { userId, mentionedBy, contentId, contentType } = req.body;
+
+  const notification = {
+    type: 'mention',
+    userId,
+    mentionedBy,
+    contentId,
+    contentType,
+    message: 'You were mentioned in a post/comment.',
+  };
+
+  notifications.push(notification);
+
+  res.status(201).send('Mention notification sent.');
+});
+
+//Tag Notifications: Notify users when they are tagged in a post or a photo.
+
+app.post('/tag-notification', (req, res) => {
+  const { userId, taggedBy, postId } = req.body;
+
+  const notification = {
+    type: 'tag',
+    userId,
+    taggedBy,
+    postId,
+    message: 'You were tagged in a post/photo.',
+  };
+
+  notifications.push(notification);
+
+  res.status(201).send('Tag notification sent.');
+});
+
+//User Engagement Notifications: Notify users about activity on their content, such as when someone shares, reblogs, or reshare their posts.
+
+app.post('/engagement-notification', (req, res) => {
+  const { userId, actionUserId, postId, action } = req.body;
+
+  const notification = {
+    type: 'engagement',
+    userId,
+    actionUserId,
+    postId,
+    message: `Your post was ${action} by ${actionUserId}.`,
+  };
+
+  notifications.push(notification);
+
+  res.status(201).send('Engagement notification sent.');
+});
