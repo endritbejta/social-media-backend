@@ -13,8 +13,10 @@ import {
   unlikePost,
   savePost,
   unsavePost,
+  getUserSavedPosts,
+  getAllSavedPosts,
 } from "../controllers/post.js";
-
+import verifyToken from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -36,7 +38,9 @@ router.delete("/posts/:postId/unlike", unlikePost);
 // Save post
 router.post("/posts/:postId/save", savePost);
 router.delete("/posts/:postId/unsave", unsavePost);
+router.get("/savedPosts/:userId", getUserSavedPosts);
+router.get("/savedPosts", getAllSavedPosts);
 
-router.post("/posts/like",likePost);
+router.post("/posts/like", likePost);
 
 export default router;

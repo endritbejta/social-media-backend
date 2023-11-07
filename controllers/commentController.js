@@ -1,20 +1,48 @@
 import Comments from "../models/CommentModel.js";
+import Post from "../models/Post.js";
+import User from "../models/User.js";
 
 export const createComment = async (req, res) => {
   try {
-    const { content, postId, from } = req.body;
-    const author = req.userId;
+    const postId = req.body.postId;
+    const userId = req.body.userId;
+    const { content } = req.body;
 
-    const comment = new Comments({
-      content,
-      postId,
-      author,
-      from,
+    if (!content || !postId) {
+      return res
+        .status(400)
+        .json({ message: "Content and PostId are required" });
+    }
+
+    const user = await User.findOne({
+      _id: userId,
     });
 
-    const newComment = await comment.save();
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
 
-    return res.status(201).json(newComment);
+    const { firstName, lastName } = user;
+
+    const author = firstName + " " + lastName;
+    const comment = new Comments({
+      postId,
+      userId,
+      content: content,
+      author: author,
+    });
+
+    await comment.save();
+
+    await Post.findByIdAndUpdate(
+      postId,
+      { $push: { comments: comment } },
+      { new: true }
+    );
+
+    return res
+      .status(201)
+      .json({ comment: { postId, userId, content, author } });
   } catch (error) {
     return res.status(400).json({ error: error.message });
   }
@@ -41,9 +69,23 @@ export const deleteComment = async (req, res) => {
   try {
     const { id } = req.params;
 
-    await Comments.findByIdAndDelete(id);
+    const userId = req.body.userId;
+    const postId = req.body.postId;
 
-    return res.status(204).end();
+    const deletedComment = await Comments.findOne({
+      postId,
+      userId,
+    });
+
+    await Post.findByIdAndUpdate(
+      postId,
+      { $pull: { comments: deletedComment._id } },
+      { new: true }
+    );
+
+    await Comments.deleteOne({ _id: deletedComment._id });
+
+    return res.status(201).json({ message: "Comment deleted successfully" });
   } catch (error) {
     return res.status(400).json({ error: error.message });
   }
@@ -81,7 +123,7 @@ export const likePostComment = async (req, res, next) => {
 
   try {
     if (rid === undefined || rid === null || rid === `false`) {
-      const comment = await Comments.findById(id); 
+      const comment = await Comments.findById(id);
 
       const index = comment.likes.findIndex((el) => el === String(userId));
 
@@ -91,7 +133,7 @@ export const likePostComment = async (req, res, next) => {
         comment.likes = comment.likes.filter((i) => i !== String(userId));
       }
 
-      const updated = await comment.save(); 
+      const updated = await comment.save();
 
       res.status(201).json(updated);
     } else {
@@ -146,7 +188,7 @@ export const commentPost = async (req, res, next) => {
       return res.status(404).json({ message: "Comment is required." });
     }
 
-    const newComment = new Comments({ comment, from, userId, postId: id });
+    const newComment = new Comments({ comment, author, userId, postId: id });
 
     await newComment.save();
 
@@ -166,21 +208,31 @@ export const commentPost = async (req, res, next) => {
 };
 
 export const replyPostComment = async (req, res, next) => {
-  const { userId } = req.body;
-  const { comment, replyAt, from } = req.body;
-  const { id } = req.params;
-
-  if (comment === null) {
-    return res.status(404).json({ message: "Comment is required." });
-  }
-
   try {
+    const userId = req.body.userId;
+    const { comment } = req.body;
+    const { id } = req.params;
+
+    const user = await User.findOne({
+      _id: userId,
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const { firstName, lastName } = user;
+
+    const author = firstName + " " + lastName;
+
+    if (comment === null) {
+      return res.status(404).json({ message: "Comment is required." });
+    }
     const commentInfo = await Comments.findById(id);
 
     commentInfo.replies.push({
       comment,
-      replyAt,
-      from,
+      author,
       userId,
       created_At: Date.now(),
     });
@@ -193,4 +245,3 @@ export const replyPostComment = async (req, res, next) => {
     res.status(404).json({ message: error.message });
   }
 };
-
