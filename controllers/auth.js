@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { sendVerificationEmail } from "../utils/email.service.js";
 
 import User from "../models/User.js";
 
@@ -40,6 +41,10 @@ export const register = async (req, res) => {
     if (user) return res.status(400).json({ error: "User exists!" });
 
     const savedUser = await newUser.save();
+
+      //EMAIL VERIFICATION
+      sendVerificationEmail(user, res);
+
     return res.status(201).json(savedUser);
   } catch (err) {
     return res.status(500).json({ error: err.message });

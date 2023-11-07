@@ -9,10 +9,6 @@ import {
   likePostComment
 } from "../controllers/commentController.js";
 
-// import {
-
-// } from "../controllers/post.js"
-
 const router = express.Router();
 
 router.post("/comments", createComment);
