@@ -186,7 +186,7 @@ export const deleteFriend = async (req, res) => {
   }
 };
 
-export const profileViews = async (req, res, next) => {
+export const profileViews = async (req, res) => {
   try {
     const { userId } = req.body.user;
     const { id } = req.body;
