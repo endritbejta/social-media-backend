@@ -7,16 +7,26 @@ import {
   acceptRequest,
   profileViews,
   suggestedFriends,
+  deleteFriend,
+  cancelRequest,
 } from "../controllers/friendsController.js";
 
 const router = express.Router();
 
 // friend request
 router.post("/friend-request", verifyToken, friendRequest);
+
+// get request
 router.post("/get-friend-request", verifyToken, getFriendRequest);
 
-// accept / deny friend request
+// accept / reject friend request
 router.post("/accept-request", verifyToken, acceptRequest);
+
+// cancel friend request
+router.post("/cancel-request", verifyToken, cancelRequest);
+
+// delete friend
+router.delete("/delete-friend", verifyToken, deleteFriend);
 
 // view profile
 router.post("/profile-view", verifyToken, profileViews);
