@@ -334,7 +334,7 @@ export const unlikePost = async (req, res) => {
     );
 
     await Like.deleteOne({ _id: like._id });
-    return res.status(201).json({ message: "Post unliked", userId });
+    return res.status(201).json({ message: "Post unliked", userId, postId });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
