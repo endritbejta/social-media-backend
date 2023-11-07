@@ -169,7 +169,7 @@ export const updatePost = async (req, res) => {
 
     await post.save();
 
-    return res.status(200).json(post);
+    return res.status(200).json({ edited: true, post });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
