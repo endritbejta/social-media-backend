@@ -5,6 +5,7 @@ import {
   getPostPictures,
   createPost,
   getPosts,
+  getFeedPosts,
   getPost,
   updatePost,
   deletePost,
@@ -26,6 +27,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 router.get("/uploads/:postId", getPostPictures);
 router.post("/posts", upload.array("images", 5), createPost);
 router.get("/posts", getPosts);
+// router.get("/posts/feedPosts", getFeedPosts);
 router.get("/posts/:postId", getPost);
 router.put("/posts/:postId", updatePost);
 router.delete("/posts/:postId", deletePost);

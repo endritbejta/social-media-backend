@@ -13,10 +13,8 @@ import { dirname } from "path";
 //Mos ma fshini ju lutem
 export const createPost = async (req, res) => {
   try {
+    const { userId, description } = req.body;
     let pictures = [];
-
-    console.log("req.files", req.files);
-    console.log("req.body", req.body);
 
     // If there are any pictures, store them to S3
     if (req.files) {
@@ -24,10 +22,21 @@ export const createPost = async (req, res) => {
       pictures = keys;
     }
 
+    const user = await User.findOne({
+      _id: userId,
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const { firstName, lastName } = user;
+
     const newPost = new Post({
-      userId: req.body.userId,
-      description: req.body.description,
+      userId: userId,
+      description: description,
       pictures,
+      author: firstName + " " + lastName,
     });
 
     await newPost.save();
@@ -117,6 +126,25 @@ export const getPosts = async (req, res) => {
   try {
     const posts = await Post.find().populate("likes").populate("comments");
     return res.status(200).json(posts);
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+//not functional yet
+export const getFeedPosts = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).populate("friends");
+
+    const friendIds = user.friends.map((friend) => friend.id);
+    friendIds.push(userId);
+
+    const posts = await Post.find({ userId: { $in: friendIds } })
+      .populate("likes")
+      .populate("comments");
+
+    res.status(200).json({ posts });
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
