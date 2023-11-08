@@ -33,6 +33,9 @@ export const createUserAbout = async (req, res) => {
       birthplace,
       phoneNumber,
       profession,
+      contactEmail,
+      website,
+      socialLink,
     } = req.body;
     if (!userId) {
       return res.status(400).json({ error: "You dont have a userId!" });
@@ -52,6 +55,9 @@ export const createUserAbout = async (req, res) => {
       birthplace,
       phoneNumber,
       profession,
+      contactEmail,
+      website,
+      socialLink,
     });
 
     await about.save();
@@ -87,6 +93,9 @@ export const updateUserAbout = async (req, res) => {
       birthplace,
       phoneNumber,
       profession,
+      contactEmail,
+      website,
+      socialLink,
     } = req.body;
 
     const existingAbout = await About.findOne({ userId: userId });
@@ -103,6 +112,9 @@ export const updateUserAbout = async (req, res) => {
     if (birthplace) existingAbout.birthplace = birthplace;
     if (phoneNumber) existingAbout.phoneNumber = phoneNumber;
     if (profession) existingAbout.profession = profession;
+    if (contactEmail) existingAbout.contactEmail = contactEmail;
+    if (website) existingAbout.website = website;
+    if (socialLink) existingAbout.socialLink = socialLink;
 
     await existingAbout.save();
 
@@ -110,5 +122,22 @@ export const updateUserAbout = async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const deleteUserAbout = async (req, res) => {
+  try {
+    const { aboutId } = req.params;
+    const about = await About.findById(aboutId);
+    if (!about) {
+      return res.status(404).json({ message: "User abouts not found" });
+    }
+
+    await about.deleteOne();
+    return res
+      .status(200)
+      .json({ message: "User abouts deleted successfully" });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
   }
 };
