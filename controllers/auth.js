@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { sendVerificationEmail } from "../utils/email.service.js";
+import { sendVerificationEmail } from "../utils/sendEmail.js";
 
 import User from "../models/User.js";
 
@@ -42,8 +42,8 @@ export const register = async (req, res) => {
 
     const savedUser = await newUser.save();
 
-      //EMAIL VERIFICATION
-      sendVerificationEmail(user, res);
+    // EMAIL VERIFICATION
+    sendVerificationEmail(savedUser, res);
 
     return res.status(201).json(savedUser);
   } catch (err) {
@@ -65,7 +65,6 @@ export const login = async (req, res) => {
       { email: user.email, password: password },
       `${process.env.JWT_SECRET}`
     );
-
 
     delete user.password;
 

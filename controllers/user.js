@@ -2,7 +2,7 @@ import Users from "../models/User.js";
 import Verification from "../models/emailVerification.js";
 import { compareString, hashString } from "../utils/authUtils.js";
 import PasswordReset from "../models/PasswordReset.js";
-import { resetPasswordLink } from "../utils/email.service.js";
+import { resetPasswordLink } from "../utils/sendEmail.js";
 
 /**
  * Created file only for creating basic users, has no authentication,
@@ -77,7 +77,7 @@ export const verifyEmail = async (req, res) => {
     if (result) {
       const { expiresAt, token: hashedToken } = result;
 
-      // token has expired
+      // token has expires
       if (expiresAt < Date.now()) {
         Verification.findOneAndDelete({ userId })
           .then(() => {
