@@ -40,9 +40,7 @@ export const createComment = async (req, res) => {
       { new: true }
     );
 
-    return res
-      .status(201)
-      .json({ comment: { postId, userId, content, author } });
+    return res.status(201).json(comment);
   } catch (error) {
     return res.status(400).json({ error: error.message });
   }
@@ -73,9 +71,14 @@ export const deleteComment = async (req, res) => {
     const postId = req.body.postId;
 
     const deletedComment = await Comments.findOne({
+      _id: id,
       postId,
       userId,
     });
+
+    if (!deletedComment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
 
     await Post.findByIdAndUpdate(
       postId,

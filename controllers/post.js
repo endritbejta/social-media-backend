@@ -14,6 +14,9 @@ import { dirname } from "path";
 export const createPost = async (req, res) => {
   try {
     const { userId, description } = req.body;
+
+    console.log("req.body", req.body);
+    console.log("req.files", req.files);
     let pictures = [];
 
     // If there are any pictures, store them to S3
