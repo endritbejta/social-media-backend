@@ -88,7 +88,10 @@ export const deleteComment = async (req, res) => {
 
     await Comments.deleteOne({ _id: deletedComment._id });
 
-    return res.status(201).json({ message: "Comment deleted successfully" });
+    return res.status(201).json({
+      message: "Comment deleted successfully",
+      _id: deletedComment._id,
+    });
   } catch (error) {
     return res.status(400).json({ error: error.message });
   }
