@@ -14,6 +14,7 @@ export const getUser = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
+
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find();

@@ -36,6 +36,7 @@ const UserSchema = new mongoose.Schema(
       },
     },
     friends: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    views: [{ type: String }],
     gender: {
       type: String,
       enum: ["Male", "Female", "Other"],
