@@ -190,14 +190,22 @@ export const cancelRequest = async (req, res) => {
 export const deleteFriend = async (req, res) => {
   try {
     const id = req.body.user.userId;
-    const { did } = req.body; //did = delete id
+    const { did } = req.body;
     const user = await Users.findById(id);
     const friend = await Users.findById(did);
+
     user.friends.remove(did);
     await user.save();
 
     friend.friends.remove(id);
     await friend.save();
+
+    await FriendRequest.findOneAndDelete({
+      $or: [
+        { requestFrom: id, requestTo: did },
+        { requestFrom: did, requestTo: id },
+      ],
+    });
 
     res.status(201).json({
       success: true,
