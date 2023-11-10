@@ -38,14 +38,17 @@ export const register = async (req, res) => {
     });
     const user = await User.findOne({ email: email });
 
-    if (user) return res.status(400).json({ error: "User exists!" });
+    if (user) {
+      return res.status(400).json({ error: "User exists!" });
+    }else {
+      const savedUser = await newUser.save();
 
-    const savedUser = await newUser.save();
+      // EMAIL VERIFICATION
+      sendVerificationEmail(savedUser, res);
 
-    // EMAIL VERIFICATION
-    sendVerificationEmail(savedUser, res);
-
-    return res.status(201).json(savedUser);
+    // return res.status(201).json(savedUser);
+    }
+  
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

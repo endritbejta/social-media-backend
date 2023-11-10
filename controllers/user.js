@@ -1,8 +1,9 @@
-import Users from "../models/User.js";
+import mongoose from "mongoose";
+
+import User from "../models/User.js";
 import Verification from "../models/emailVerification.js";
-import { compareString, hashString } from "../utils/authUtils.js";
-import PasswordReset from "../models/PasswordReset.js";
-import { resetPasswordLink } from "../utils/sendEmail.js";
+import { compareString, hashString } from "../utils/helpers.js";
+
 
 /**
  * Created file only for creating basic users, has no authentication,
@@ -81,7 +82,7 @@ export const verifyEmail = async (req, res) => {
       if (expiresAt < Date.now()) {
         Verification.findOneAndDelete({ userId })
           .then(() => {
-            Users.findOneAndDelete({ _id: userId })
+            User.findOneAndDelete({ _id: userId })
               .then(() => {
                 const message = "Verification token has expired.";
                 res.redirect(`/users/verified?status=error&message=${message}`);
@@ -99,7 +100,7 @@ export const verifyEmail = async (req, res) => {
         compareString(token, hashedToken)
           .then((isMatch) => {
             if (isMatch) {
-              Users.findOneAndUpdate({ _id: userId }, { verified: true })
+              User.findOneAndUpdate({ _id: userId }, { verified: true })
                 .then(() => {
                   Verification.findOneAndDelete({ userId }).then(() => {
                     const message = "Email verified successfully";
@@ -135,99 +136,101 @@ export const verifyEmail = async (req, res) => {
     res.redirect(`/users/verified?message=`);
   }
 };
+  
 
-export const requestPasswordReset = async (req, res) => {
-  try {
-    const { email } = req.body;
 
-    const user = await Users.findOne({ email });
+// export const requestPasswordReset = async (req, res) => {
+//   try {
+//     const { email } = req.body;
 
-    if (!user) {
-      return res.status(404).json({
-        status: "FAILED",
-        message: "Email address not found.",
-      });
-    }
+//     const user = await Users.findOne({ email });
 
-    const existingRequest = await PasswordReset.findOne({ email });
-    if (existingRequest) {
-      if (existingRequest.expiresAt > Date.now()) {
-        return res.status(201).json({
-          status: "PENDING",
-          message: "Reset password link has already been sent tp your email.",
-        });
-      }
-      await PasswordReset.findOneAndDelete({ email });
-    }
-    await resetPasswordLink(user, res);
-  } catch (error) {
-    console.log(error);
-    res.status(404).json({ message: error.message });
-  }
-};
+//     if (!user) {
+//       return res.status(404).json({
+//         status: "FAILED",
+//         message: "Email address not found.",
+//       });
+//     }
 
-export const resetPassword = async (req, res) => {
-  const { userId, token } = req.params;
+//     const existingRequest = await PasswordReset.findOne({ email });
+//     if (existingRequest) {
+//       if (existingRequest.expiresAt > Date.now()) {
+//         return res.status(201).json({
+//           status: "PENDING",
+//           message: "Reset password link has already been sent tp your email.",
+//         });
+//       }
+//       await PasswordReset.findOneAndDelete({ email });
+//     }
+//     await resetPasswordLink(user, res);
+//   } catch (error) {
+//     console.log(error);
+//     res.status(404).json({ message: error.message });
+//   }
+// };
 
-  try {
-    // find record
-    const user = await Users.findById(userId);
+// export const resetPassword = async (req, res) => {
+//   const { userId, token } = req.params;
 
-    if (!user) {
-      const message = "Invalid password reset link. Try again";
-      res.redirect(`/users/resetpassword?status=error&message=${message}`);
-    }
+//   try {
+//     // find record
+//     const user = await Users.findById(userId);
 
-    const resetPassword = await PasswordReset.findOne({ userId });
+//     if (!user) {
+//       const message = "Invalid password reset link. Try again";
+//       res.redirect(`/users/resetpassword?status=error&message=${message}`);
+//     }
 
-    if (!resetPassword) {
-      const message = "Invalid password reset link. Try again";
-      return res.redirect(
-        `/users/resetpassword?status=error&message=${message}`
-      );
-    }
+//     const resetPassword = await PasswordReset.findOne({ userId });
 
-    const { expiresAt, token: resetToken } = resetPassword;
+//     if (!resetPassword) {
+//       const message = "Invalid password reset link. Try again";
+//       return res.redirect(
+//         `/users/resetpassword?status=error&message=${message}`
+//       );
+//     }
 
-    if (expiresAt < Date.now()) {
-      const message = "Reset Password link has expired. Please try again";
-      res.redirect(`/users/resetpassword?status=error&message=${message}`);
-    } else {
-      const isMatch = await compareString(token, resetToken);
+//     const { expiresAt, token: resetToken } = resetPassword;
 
-      if (!isMatch) {
-        const message = "Invalid reset password link. Please try again";
-        res.redirect(`/users/resetpassword?status=error&message=${message}`);
-      } else {
-        res.redirect(`/users/resetpassword?type=reset&id=${userId}`);
-      }
-    }
-  } catch (error) {
-    console.log(error);
-    res.status(404).json({ message: error.message });
-  }
-};
+//     if (expiresAt < Date.now()) {
+//       const message = "Reset Password link has expired. Please try again";
+//       res.redirect(`/users/resetpassword?status=error&message=${message}`);
+//     } else {
+//       const isMatch = await compareString(token, resetToken);
 
-export const changePassword = async (req, res, next) => {
-  try {
-    const { userId, password } = req.body;
+//       if (!isMatch) {
+//         const message = "Invalid reset password link. Please try again";
+//         res.redirect(`/users/resetpassword?status=error&message=${message}`);
+//       } else {
+//         res.redirect(`/users/resetpassword?type=reset&id=${userId}`);
+//       }
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     res.status(404).json({ message: error.message });
+//   }
+// };
 
-    const hashedpassword = await hashString(password);
+// export const changePassword = async (req, res, next) => {
+//   try {
+//     const { userId, password } = req.body;
 
-    const user = await Users.findByIdAndUpdate(
-      { _id: userId },
-      { password: hashedpassword }
-    );
+//     const hashedpassword = await hashString(password);
 
-    if (user) {
-      await PasswordReset.findOneAndDelete({ userId });
+//     const user = await Users.findByIdAndUpdate(
+//       { _id: userId },
+//       { password: hashedpassword }
+//     );
 
-      res.status(200).json({
-        ok: true,
-      });
-    }
-  } catch (error) {
-    console.log(error);
-    res.status(404).json({ message: error.message });
-  }
-};
+//     if (user) {
+//       await PasswordReset.findOneAndDelete({ userId });
+
+//       res.status(200).json({
+//         ok: true,
+//       });
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     res.status(404).json({ message: error.message });
+//   }
+// };
