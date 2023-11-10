@@ -14,6 +14,9 @@ import { dirname } from "path";
 export const createPost = async (req, res) => {
   try {
     const { userId, description } = req.body;
+
+    console.log("req.body", req.body);
+    console.log("req.files", req.files);
     let pictures = [];
 
     // If there are any pictures, store them to S3
@@ -131,11 +134,14 @@ export const getPosts = async (req, res) => {
   }
 };
 
-//not functional yet
 export const getFeedPosts = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const { userId } = req.body;
     const user = await User.findById(userId).populate("friends");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
     const friendIds = user.friends.map((friend) => friend.id);
     friendIds.push(userId);
@@ -144,7 +150,7 @@ export const getFeedPosts = async (req, res) => {
       .populate("likes")
       .populate("comments");
 
-    res.status(200).json({ posts });
+    return res.status(200).json(posts);
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }

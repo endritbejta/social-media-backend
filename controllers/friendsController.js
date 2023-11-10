@@ -32,13 +32,13 @@ export const friendRequest = async (req, res, next) => {
       requestFrom: userId,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Friend Request sent successfully",
     });
   } catch (error) {
     console.log(error);
-    res.status(500).json({
+    return res.status(500).json({
       message: "auth  request error",
       success: false,
       error: error.message,
@@ -63,13 +63,13 @@ export const getFriendRequest = async (req, res) => {
         _id: -1,
       });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: request,
     });
   } catch (error) {
     console.log(error);
-    res.status(500).json({
+    return res.status(500).json({
       message: "auth getreq error",
       success: false,
       error: error.message,
@@ -123,13 +123,13 @@ export const acceptRequest = async (req, res, next) => {
       const user = await FriendRequest.findByIdAndDelete(newRes);
     }
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Friend Request " + status,
     });
   } catch (error) {
     console.log(error);
-    res.status(500).json({
+    return res.status(500).json({
       message: "auth accept error",
       success: false,
       error: error.message,
@@ -151,7 +151,7 @@ export const cancelRequest = async (req, res) => {
     }
   } catch (error) {
     console.log(error);
-    res.status(500).json({
+    return res.status(500).json({
       message: "auth cancel error",
       success: false,
       error: error.message,
@@ -172,13 +172,13 @@ export const deleteFriend = async (req, res) => {
     friend.friends.remove(id);
     await friend.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Friend Deleted",
     });
   } catch (error) {
     console.log(error);
-    res.status(500).json({
+    return res.status(500).json({
       message: "auth delete error",
       success: false,
       error: error.message,
@@ -197,13 +197,13 @@ export const profileViews = async (req, res) => {
 
     await user.save();
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Successfully",
     });
   } catch (error) {
     console.log(error);
-    res.status(500).json({
+    return res.status(500).json({
       message: "auth error",
       success: false,
       error: error.message,
