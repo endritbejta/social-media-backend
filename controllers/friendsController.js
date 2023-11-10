@@ -137,6 +137,102 @@ export const acceptRequest = async (req, res, next) => {
   }
 };
 
-// !  profileviews
+export const cancelRequest = async (req, res) => {
+  try {
+    const { rid, status } = req.body;
 
-// ! sugested friends
+    const newRes = await FriendRequest.findByIdAndUpdate(
+      { _id: rid },
+      { requestStatus: status }
+    );
+
+    if (status === "Cancel") {
+      await FriendRequest.findByIdAndDelete(newRes);
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "auth cancel error",
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+export const deleteFriend = async (req, res) => {
+  try {
+    const id = req.body.user.userId;
+    const { did } = req.body; //did = delete id
+    const user = await Users.findById(id);
+    const friend = await Users.findById(did);
+
+    user.friends.remove(did);
+    await user.save();
+
+    friend.friends.remove(id);
+    await friend.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Friend Deleted",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "auth delete error",
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+export const profileViews = async (req, res) => {
+  try {
+    const { userId } = req.body.user;
+    const { id } = req.body;
+
+    const user = await Users.findById(id);
+
+    user.views.push(userId);
+
+    await user.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "auth error",
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+export const suggestedFriends = async (req, res) => {
+  try {
+    const { userId } = req.body.user;
+
+    let queryObject = {};
+
+    queryObject._id = { $ne: userId };
+
+    queryObject.friends = { $nin: userId };
+
+    let queryResult = Users.find(queryObject)
+      .limit(10)
+      .select("firstName lastName profileUrl");
+
+    const suggestedFriends = await queryResult;
+
+    res.status(200).json({
+      success: true,
+      data: suggestedFriends,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({ message: error.message });
+  }
+};
