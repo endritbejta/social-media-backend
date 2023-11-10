@@ -150,7 +150,7 @@ export const getFeedPosts = async (req, res) => {
       .populate("likes")
       .populate("comments");
 
-    return res.status(200).json({ posts });
+    return res.status(200).json(posts);
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
