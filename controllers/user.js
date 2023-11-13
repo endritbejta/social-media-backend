@@ -4,7 +4,6 @@ import User from "../models/User.js";
 import Verification from "../models/emailVerification.js";
 import { compareString, hashString } from "../utils/helpers.js";
 
-
 /**
  * Created file only for creating basic users, has no authentication,
  * no authorization, will be deleted later on.
@@ -67,14 +66,12 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-
-
 export const verifyEmail = async (req, res) => {
   const { userId, token } = req.params;
 
   try {
-    const result = await Verification.findOne({ userId });
-
+    const result = await Verification.findOne({ userId: userId });
+    console.log("result", result, userId);
     if (result) {
       const { expiresAt, token: hashedToken } = result;
 
@@ -92,28 +89,31 @@ export const verifyEmail = async (req, res) => {
               });
           })
           .catch((error) => {
-            console.log(error);
+            console.log("error1", error);
             res.redirect(`/users/verified?message=`);
           });
       } else {
         //token valid
         compareString(token, hashedToken)
-          .then((isMatch) => {
+          .then(async (isMatch) => {
             if (isMatch) {
-              User.findOneAndUpdate({ _id: userId }, { verified: true })
-                .then(() => {
-                  Verification.findOneAndDelete({ userId }).then(() => {
-                    const message = "Email verified successfully";
-                    res.redirect(
-                      `/users/verified?status=success&message=${message}`
-                    );
-                  });
+              await User.findOneAndUpdate({ _id: userId }, { verified: true })
+                .then(async (freskim) => {
+                  await Verification.findOneAndDelete({ userId }).then(
+                    (shabani) => {
+                      const message = "Email verified successfully";
+                      console.log("shaban1", freskim);
+                      res.json(
+                        `/users/verified?status=success&message=${message}`,
+                      );
+                    },
+                  );
                 })
                 .catch((err) => {
                   console.log(err);
                   const message = "Verification failed or link is invalid";
                   res.redirect(
-                    `/users/verified?status=error&message=${message}`
+                    `/users/verified?status=error&message=${message}`,
                   );
                 });
             } else {
@@ -128,16 +128,14 @@ export const verifyEmail = async (req, res) => {
           });
       }
     } else {
-      const message = "Invalid verification link. Try again later.";
+      const message = "Verification not found.";
       res.redirect(`/users/verified?status=error&message=${message}`);
     }
   } catch (error) {
-    console.log(err);
+    console.log("err2", err);
     res.redirect(`/users/verified?message=`);
   }
 };
-  
-
 
 // export const requestPasswordReset = async (req, res) => {
 //   try {

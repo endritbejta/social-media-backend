@@ -43,11 +43,9 @@ const UserSchema = new mongoose.Schema(
     birthday: {
       type: Date,
     },
-    verified: { type: Boolean, default: false },
-
-
+    verified: { type: Boolean, default: 0 },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const User = mongoose.model("User", UserSchema);

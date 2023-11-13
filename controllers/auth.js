@@ -40,15 +40,14 @@ export const register = async (req, res) => {
 
     if (user) {
       return res.status(400).json({ error: "User exists!" });
-    }else {
+    } else {
       const savedUser = await newUser.save();
 
       // EMAIL VERIFICATION
       sendVerificationEmail(savedUser, res);
 
-    // return res.status(201).json(savedUser);
+      // return res.status(201).json(savedUser);
     }
-  
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
@@ -58,20 +57,27 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email: email });
-    if (!user) return res.status(400).json({ error: "Invalid credentials!" });
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
+    if (!user) {
       return res.status(400).json({ error: "Invalid credentials!" });
+    }
+    if (user && user.verified == false) {
+      return res
+        .status(400)
+        .json({ error: "Please verify your account first!" });
+    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch && user.verified == true) {
+      return res.status(400).json({ error: "Invalid credentials!" });
+    } else {
+      const token = jwt.sign(
+        { email: user.email, password: password },
+        `${process.env.JWT_SECRET}`,
+      );
 
-    const token = jwt.sign(
-      { email: user.email, password: password },
-      `${process.env.JWT_SECRET}`
-    );
+      delete user.password;
 
-    delete user.password;
-
-    return res.status(200).json({ token, user });
+      return res.status(200).json({ token, user });
+    }
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
