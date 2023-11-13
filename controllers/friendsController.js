@@ -35,6 +35,7 @@ export const friendRequest = async (req, res, next) => {
     res.status(201).json({
       success: true,
       message: "Friend Request sent successfully",
+      data: newRes,
     });
   } catch (error) {
     console.log(error);
@@ -172,17 +173,12 @@ export const getSentFriendRequests = async (req, res) => {
 export const cancelRequest = async (req, res) => {
   try {
     const { rid } = req.body;
-    await FriendRequest.findByIdAndDelete({ _id: rid });
-
-    const newRes = await FriendRequest.findByIdAndUpdate(
-      { _id: rid },
-      { requestStatus: status }
-    );
+    const response = await FriendRequest.findByIdAndDelete({ _id: rid });
 
     res.status(201).json({
       success: true,
       message: "Friend Request canceled",
-      data: newRes,
+      data: response,
     });
   } catch (error) {
     console.log(error);
