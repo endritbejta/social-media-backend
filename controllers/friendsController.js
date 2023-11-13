@@ -126,6 +126,7 @@ export const acceptRequest = async (req, res, next) => {
     res.status(201).json({
       success: true,
       message: "Friend Request " + status,
+      data: newRes,
     });
   } catch (error) {
     console.log(error);
