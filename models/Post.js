@@ -6,6 +6,10 @@ const PostSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    author: {
+      type: String,
+      default: "",
+    },
     description: {
       type: String,
       required: true,
@@ -25,7 +29,7 @@ const PostSchema = new mongoose.Schema(
     comments: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Comment",
+        ref: "Comments",
         default: [],
       },
     ],

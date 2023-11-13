@@ -3,11 +3,11 @@ import dotenv from "dotenv";
 import cors from "cors";
 import morgan from "morgan";
 import mongoose from "mongoose";
-
+import friendsRoutes from "./routes/friends.routes.js";
 import authRoutes from "./routes/auth.js";
 import postRoutes from "./routes/posts.js";
 import userRoutes from "./routes/users.js";
-import commentRoutes from "./routes/comments.js";
+import commentRoutes from "./routes/comment.routes.js";
 
 dotenv.config();
 
@@ -27,12 +27,25 @@ app.use(authRoutes);
 app.use(postRoutes);
 app.use(userRoutes);
 app.use(commentRoutes);
-
-const PORT = process.env.PORT || 9999;
+app.use(friendsRoutes);
 
 const MONGO_URL = process.env.MONGO_URL;
 
-mongoose
-  .connect(MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => app.listen(PORT, () => console.log(`Listening on PORT ${PORT}`)))
-  .catch((err) => console.log(`${err}: did not connect.`));
+try {
+  mongoose
+    .connect(process.env.MONGO_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    })
+    .then(() => {
+      console.log("DB Connected Successfully");
+    });
+} catch (err) {
+  console.log(`${err}: did not connect.`);
+}
+
+const PORT = process.env.PORT || 9999;
+
+app.listen(PORT, () => {
+  console.log(`Listening on PORT ${PORT}`);
+});

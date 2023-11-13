@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const UserSchema = new mongoose.Schema(
   {
@@ -35,6 +35,7 @@ const UserSchema = new mongoose.Schema(
         message: "Password confirmation does not match the password.",
       },
     },
+    friends: [{ type: Schema.Types.ObjectId, ref: "User" }],
     gender: {
       type: String,
       enum: ["Male", "Female", "Other"],

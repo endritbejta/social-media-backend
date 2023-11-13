@@ -2,6 +2,7 @@ import express from "express";
 import multer from "multer";
 
 import {
+  getPostPictures,
   createPost,
   getPosts,
   getPost,
@@ -19,6 +20,7 @@ const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Post
+router.get("/uploads/:postId", getPostPictures);
 router.post("/posts", upload.array("images", 5), createPost);
 router.get("/posts", getPosts);
 router.get("/posts/:postId", getPost);
