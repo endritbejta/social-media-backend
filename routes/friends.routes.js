@@ -9,6 +9,7 @@ import {
   suggestedFriends,
   deleteFriend,
   cancelRequest,
+  getSentFriendRequests,
 } from "../controllers/friendsController.js";
 
 const router = express.Router();
@@ -21,6 +22,9 @@ router.post("/get-friend-request", verifyToken, getFriendRequest);
 
 // accept / reject friend request
 router.post("/accept-request", verifyToken, acceptRequest);
+
+// get send requests
+router.post("/get-send-request", verifyToken, getSentFriendRequests);
 
 // cancel friend request
 router.post("/cancel-request", verifyToken, cancelRequest);
