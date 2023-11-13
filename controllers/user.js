@@ -1,44 +1,6 @@
 import User from "../models/User.js";
 import About from "../models/About.js";
 
-/**
- * Created file only for creating basic users, has no authentication,
- * no authorization, will be deleted later on.
- */
-export const createUser = async (req, res) => {
-  try {
-    const {
-      firstName,
-      lastName,
-      email,
-      password,
-      confirmPassword,
-      gender,
-      birthday,
-      age,
-    } = req.body;
-
-    const newUser = new User({
-      firstName,
-      lastName,
-      email,
-      password,
-      confirmPassword,
-      gender,
-      birthday,
-      age,
-    });
-
-    await newUser.save();
-
-    return res
-      .status(201)
-      .json({ message: "User created successfully", user: newUser });
-  } catch (err) {
-    return res.status(500).json({ message: err.message });
-  }
-};
-
 export const getUser = async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -64,14 +26,17 @@ export const getAllUsers = async (req, res) => {
 
 export const createUserAbout = async (req, res) => {
   try {
+    const userId = req.params.userId;
     const {
-      userId,
       highschool,
       university,
       residence,
       birthplace,
       phoneNumber,
       profession,
+      contactEmail,
+      website,
+      socialLink,
     } = req.body;
     if (!userId) {
       return res.status(400).json({ error: "You dont have a userId!" });
@@ -91,6 +56,9 @@ export const createUserAbout = async (req, res) => {
       birthplace,
       phoneNumber,
       profession,
+      contactEmail,
+      website,
+      socialLink,
     });
 
     await about.save();
@@ -126,6 +94,9 @@ export const updateUserAbout = async (req, res) => {
       birthplace,
       phoneNumber,
       profession,
+      contactEmail,
+      website,
+      socialLink,
     } = req.body;
 
     const existingAbout = await About.findOne({ userId: userId });
@@ -142,13 +113,32 @@ export const updateUserAbout = async (req, res) => {
     if (birthplace) existingAbout.birthplace = birthplace;
     if (phoneNumber) existingAbout.phoneNumber = phoneNumber;
     if (profession) existingAbout.profession = profession;
+    if (contactEmail) existingAbout.contactEmail = contactEmail;
+    if (website) existingAbout.website = website;
+    if (socialLink) existingAbout.socialLink = socialLink;
 
-    // Save the updated About document
     await existingAbout.save();
 
     return res.status(200).json(existingAbout);
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const deleteUserAbout = async (req, res) => {
+  try {
+    const { aboutId } = req.params;
+    const about = await About.findById(aboutId);
+    if (!about) {
+      return res.status(404).json({ message: "User abouts not found" });
+    }
+
+    await about.deleteOne();
+    return res
+      .status(200)
+      .json({ message: "User abouts deleted successfully" });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
   }
 };

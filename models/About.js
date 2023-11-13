@@ -20,6 +20,15 @@ const AboutSchema = new mongoose.Schema({
   profession: {
     type: String,
   },
+  contactEmail: {
+    type: String,
+  },
+  website: {
+    type: String,
+  },
+  socialLink: {
+    type: String,
+  },
 });
 
 const About = mongoose.model("About", AboutSchema);
