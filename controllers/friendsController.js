@@ -174,9 +174,15 @@ export const cancelRequest = async (req, res) => {
     const { rid } = req.body;
     await FriendRequest.findByIdAndDelete({ _id: rid });
 
+    const newRes = await FriendRequest.findByIdAndUpdate(
+      { _id: rid },
+      { requestStatus: status }
+    );
+
     res.status(201).json({
       success: true,
       message: "Friend Request canceled",
+      data: newRes,
     });
   } catch (error) {
     console.log(error);
