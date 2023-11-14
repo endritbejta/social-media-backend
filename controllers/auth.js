@@ -60,7 +60,7 @@ export const login = async (req, res, next) => {
       path: "friends",
       select: "firstName lastName location profileUrl",
     });
-    
+
     if (!user) {
       next("Invalid email or password");
       return;
