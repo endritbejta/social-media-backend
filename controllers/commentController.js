@@ -28,7 +28,7 @@ export const updateComment = async (req, res) => {
     const updatedComment = await Comments.findByIdAndUpdate(
       id,
       { content },
-      { new: true }
+      { new: true },
     );
 
     return res.json(updatedComment);
@@ -81,7 +81,7 @@ export const likePostComment = async (req, res, next) => {
 
   try {
     if (rid === undefined || rid === null || rid === `false`) {
-      const comment = await Comments.findById(id); 
+      const comment = await Comments.findById(id);
 
       const index = comment.likes.findIndex((el) => el === String(userId));
 
@@ -91,7 +91,7 @@ export const likePostComment = async (req, res, next) => {
         comment.likes = comment.likes.filter((i) => i !== String(userId));
       }
 
-      const updated = await comment.save(); 
+      const updated = await comment.save();
 
       res.status(201).json(updated);
     } else {
@@ -103,18 +103,18 @@ export const likePostComment = async (req, res, next) => {
               _id: rid,
             },
           },
-        }
+        },
       );
 
       const index = replyComments?.replies[0]?.likes.findIndex(
-        (i) => i === String(userId)
+        (i) => i === String(userId),
       );
 
       if (index === -1) {
         replyComments.replies[0].likes.push(userId);
       } else {
         replyComments.replies[0].likes = replyComments.replies[0]?.likes.filter(
-          (i) => i !== String(userId)
+          (i) => i !== String(userId),
         );
       }
 
@@ -193,4 +193,3 @@ export const replyPostComment = async (req, res, next) => {
     res.status(404).json({ message: error.message });
   }
 };
-
