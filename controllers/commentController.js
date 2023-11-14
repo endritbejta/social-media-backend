@@ -8,10 +8,10 @@ export const createComment = async (req, res) => {
     const userId = req.body.userId;
     const { content } = req.body;
 
-    if (!content || !postId) {
+    if (!content || !postId || !userId) {
       return res
         .status(400)
-        .json({ message: "Content and PostId are required" });
+        .json({ message: "Content, PostId, and UserId are required" });
     }
 
     const user = await User.findOne({
@@ -37,7 +37,7 @@ export const createComment = async (req, res) => {
     await Post.findByIdAndUpdate(
       postId,
       { $push: { comments: comment } },
-      { new: true }
+      { new: true },
     );
 
     return res.status(201).json(comment);
@@ -83,7 +83,7 @@ export const deleteComment = async (req, res) => {
     await Post.findByIdAndUpdate(
       postId,
       { $pull: { comments: deletedComment._id } },
-      { new: true }
+      { new: true },
     );
 
     await Comments.deleteOne({ _id: deletedComment._id });
@@ -130,23 +130,13 @@ export const likePostComment = async (req, res, next) => {
   try {
     if (rid === undefined || rid === null || rid === `false`) {
       const comment = await Comments.findById(id);
-    console.log('Before finding comment:', id);
 
-    const comment = await Comments.findById(id);
-
-    console.log('After finding comment:', comment);
-
-    if (!comment) {
-      return res.status(404).json({ message: "Comment not found" });
-    }
-
-    if (!rid) {
-      const index = comment.likes.findIndex(el => el.toString() === userId);
+      const index = comment.likes.findIndex((el) => el === String(userId));
 
       if (index === -1) {
         comment.likes.push(userId);
       } else {
-        comment.likes = comment.likes.filter(i => i.toString() !== userId);
+        comment.likes = comment.likes.filter((i) => i !== String(userId));
       }
 
       const updated = await comment.save();
@@ -166,12 +156,6 @@ export const likePostComment = async (req, res, next) => {
 
       const index = replyComments?.replies[0]?.likes.findIndex(
         (i) => i === String(userId),
-      const updatedComment = await Comments.findOneAndUpdate(
-        { _id: id, "replies._id": rid },
-        {
-          $addToSet: { "replies.$.likes": userId },
-        },
-        { new: true }
       );
 
       if (index === -1) {
@@ -196,10 +180,9 @@ export const likePostComment = async (req, res, next) => {
     }
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(404).json({ message: error.message });
   }
 };
-
 
 export const commentPost = async (req, res, next) => {
   try {
@@ -255,7 +238,7 @@ export const replyPostComment = async (req, res, next) => {
     const commentInfo = await Comments.findById(id);
 
     commentInfo.replies.push({
-      content, 
+      content,
       author,
       userId,
       created_At: Date.now(),

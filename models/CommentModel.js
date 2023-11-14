@@ -5,19 +5,19 @@ const CommentSchema = new mongoose.Schema(
     userId: { type: Schema.Types.ObjectId, ref: "User" },
     postId: { type: Schema.Types.ObjectId, ref: "Post" },
     content: { type: String, required: true },
-    author: { type: String, ref: "Post" },
+    author: { type: String, ref: "User" },
     replies: [
       {
         rid: { type: mongoose.Schema.Types.ObjectId },
         userId: { type: Schema.Types.ObjectId, ref: "User" },
-        author: { type: String, ref: "Post" },
+        author: { type: String, ref: "User" },
         content: { type: String },
         likes: [{ type: Schema.Types.ObjectId, ref: "Like" }],
       },
     ],
     likes: [{ type: Schema.Types.ObjectId, ref: "Like" }],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Comments = mongoose.model("Comments", CommentSchema);
