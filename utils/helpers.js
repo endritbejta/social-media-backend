@@ -1,4 +1,7 @@
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
+import JWT from "jsonwebtoken";
+
 
 import bcrypt from "bcrypt";
 import JWT from "jsonwebtoken";
@@ -20,7 +23,7 @@ export const compareString = async (userPassword, password) => {
 };
 
 //JSON WEBTOKEN
-export function createJWT(id) {
+
   return JWT.sign({ userId: id }, `${process.env.JWT_SECRET}`, {
     expiresIn: "1d",
   });

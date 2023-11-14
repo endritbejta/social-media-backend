@@ -54,7 +54,7 @@ export const updateComment = async (req, res) => {
     const updatedComment = await Comments.findByIdAndUpdate(
       id,
       { content },
-      { new: true }
+      { new: true },
     );
 
     return res.json(updatedComment);
@@ -128,6 +128,8 @@ export const likePostComment = async (req, res, next) => {
   const { id, rid } = req.params;
 
   try {
+    if (rid === undefined || rid === null || rid === `false`) {
+      const comment = await Comments.findById(id);
     console.log('Before finding comment:', id);
 
     const comment = await Comments.findById(id);
@@ -147,9 +149,23 @@ export const likePostComment = async (req, res, next) => {
         comment.likes = comment.likes.filter(i => i.toString() !== userId);
       }
 
-      const updatedComment = await comment.save();
-      return res.status(201).json(updatedComment);
+      const updated = await comment.save();
+
+      res.status(201).json(updated);
     } else {
+      const replyComments = await Comments.findOne(
+        { _id: id },
+        {
+          replies: {
+            $elemMatch: {
+              _id: rid,
+            },
+          },
+        },
+      );
+
+      const index = replyComments?.replies[0]?.likes.findIndex(
+        (i) => i === String(userId),
       const updatedComment = await Comments.findOneAndUpdate(
         { _id: id, "replies._id": rid },
         {
@@ -158,11 +174,25 @@ export const likePostComment = async (req, res, next) => {
         { new: true }
       );
 
-      if (!updatedComment) {
-        return res.status(404).json({ message: "Comment or reply not found" });
+      if (index === -1) {
+        replyComments.replies[0].likes.push(userId);
+      } else {
+        replyComments.replies[0].likes = replyComments.replies[0]?.likes.filter(
+          (i) => i !== String(userId),
+        );
       }
 
-      return res.status(201).json(updatedComment);
+      const query = { _id: id, "replies._id": rid };
+
+      const updated = {
+        $set: {
+          "replies.$.likes": replyComments.replies[0].likes,
+        },
+      };
+
+      const result = await Comments.updateOne(query, updated, { new: true });
+
+      res.status(201).json(result);
     }
   } catch (error) {
     console.log(error);
@@ -253,4 +283,3 @@ export const replyPostComment = async (req, res, next) => {
     res.status(404).json({ message: error.message });
   }
 };
-
