@@ -3,6 +3,9 @@ import bcrypt from "bcryptjs";
 import JWT from "jsonwebtoken";
 
 
+import bcrypt from "bcrypt";
+import JWT from "jsonwebtoken";
+
 export const generateRandomString = () => {
   return crypto.randomBytes(20).toString("hex");
 };
@@ -20,8 +23,8 @@ export const compareString = async (userPassword, password) => {
 };
 
 //JSON WEBTOKEN
-export function createJWT(id) {
-  return JWT.sign({ userId: id }, process.env.JWT_SECRET_KEY, {
+
+  return JWT.sign({ userId: id }, `${process.env.JWT_SECRET}`, {
     expiresIn: "1d",
   });
 }

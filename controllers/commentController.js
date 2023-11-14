@@ -1,20 +1,46 @@
 import Comments from "../models/CommentModel.js";
+import Post from "../models/Post.js";
+import User from "../models/User.js";
 
 export const createComment = async (req, res) => {
   try {
-    const { content, postId, from } = req.body;
-    const author = req.userId;
+    const postId = req.body.postId;
+    const userId = req.body.userId;
+    const { content } = req.body;
 
-    const comment = new Comments({
-      content,
-      postId,
-      author,
-      from,
+    if (!content || !postId) {
+      return res
+        .status(400)
+        .json({ message: "Content and PostId are required" });
+    }
+
+    const user = await User.findOne({
+      _id: userId,
     });
 
-    const newComment = await comment.save();
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
 
-    return res.status(201).json(newComment);
+    const { firstName, lastName } = user;
+
+    const author = firstName + " " + lastName;
+    const comment = new Comments({
+      postId,
+      userId,
+      content: content,
+      author: author,
+    });
+
+    await comment.save();
+
+    await Post.findByIdAndUpdate(
+      postId,
+      { $push: { comments: comment } },
+      { new: true }
+    );
+
+    return res.status(201).json(comment);
   } catch (error) {
     return res.status(400).json({ error: error.message });
   }
@@ -41,9 +67,31 @@ export const deleteComment = async (req, res) => {
   try {
     const { id } = req.params;
 
-    await Comments.findByIdAndDelete(id);
+    const userId = req.body.userId;
+    const postId = req.body.postId;
 
-    return res.status(204).end();
+    const deletedComment = await Comments.findOne({
+      _id: id,
+      postId,
+      userId,
+    });
+
+    if (!deletedComment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    await Post.findByIdAndUpdate(
+      postId,
+      { $pull: { comments: deletedComment._id } },
+      { new: true }
+    );
+
+    await Comments.deleteOne({ _id: deletedComment._id });
+
+    return res.status(201).json({
+      message: "Comment deleted successfully",
+      _id: deletedComment._id,
+    });
   } catch (error) {
     return res.status(400).json({ error: error.message });
   }
@@ -80,61 +128,48 @@ export const likePostComment = async (req, res, next) => {
   const { id, rid } = req.params;
 
   try {
-    if (rid === undefined || rid === null || rid === `false`) {
-      const comment = await Comments.findById(id); 
+    console.log('Before finding comment:', id);
 
-      const index = comment.likes.findIndex((el) => el === String(userId));
+    const comment = await Comments.findById(id);
+
+    console.log('After finding comment:', comment);
+
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    if (!rid) {
+      const index = comment.likes.findIndex(el => el.toString() === userId);
 
       if (index === -1) {
         comment.likes.push(userId);
       } else {
-        comment.likes = comment.likes.filter((i) => i !== String(userId));
+        comment.likes = comment.likes.filter(i => i.toString() !== userId);
       }
 
-      const updated = await comment.save(); 
-
-      res.status(201).json(updated);
+      const updatedComment = await comment.save();
+      return res.status(201).json(updatedComment);
     } else {
-      const replyComments = await Comments.findOne(
-        { _id: id },
+      const updatedComment = await Comments.findOneAndUpdate(
+        { _id: id, "replies._id": rid },
         {
-          replies: {
-            $elemMatch: {
-              _id: rid,
-            },
-          },
-        }
+          $addToSet: { "replies.$.likes": userId },
+        },
+        { new: true }
       );
 
-      const index = replyComments?.replies[0]?.likes.findIndex(
-        (i) => i === String(userId)
-      );
-
-      if (index === -1) {
-        replyComments.replies[0].likes.push(userId);
-      } else {
-        replyComments.replies[0].likes = replyComments.replies[0]?.likes.filter(
-          (i) => i !== String(userId)
-        );
+      if (!updatedComment) {
+        return res.status(404).json({ message: "Comment or reply not found" });
       }
 
-      const query = { _id: id, "replies._id": rid };
-
-      const updated = {
-        $set: {
-          "replies.$.likes": replyComments.replies[0].likes,
-        },
-      };
-
-      const result = await Comments.updateOne(query, updated, { new: true });
-
-      res.status(201).json(result);
+      return res.status(201).json(updatedComment);
     }
   } catch (error) {
     console.log(error);
-    res.status(404).json({ message: error.message });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 
 export const commentPost = async (req, res, next) => {
   try {
@@ -146,7 +181,7 @@ export const commentPost = async (req, res, next) => {
       return res.status(404).json({ message: "Comment is required." });
     }
 
-    const newComment = new Comments({ comment, from, userId, postId: id });
+    const newComment = new Comments({ comment, author, userId, postId: id });
 
     await newComment.save();
 
@@ -166,28 +201,53 @@ export const commentPost = async (req, res, next) => {
 };
 
 export const replyPostComment = async (req, res, next) => {
-  const { userId } = req.body;
-  const { comment, replyAt, from } = req.body;
-  const { id } = req.params;
-
-  if (comment === null) {
-    return res.status(404).json({ message: "Comment is required." });
-  }
-
   try {
+    const userId = req.body.userId;
+    const { content } = req.body;
+    const { id } = req.params;
+
+    const user = await User.findOne({
+      _id: userId,
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const { firstName, lastName } = user;
+
+    const author = firstName + " " + lastName;
+
+    if (!content) {
+      return res.status(404).json({ message: "Content is required." });
+    }
+
     const commentInfo = await Comments.findById(id);
 
     commentInfo.replies.push({
-      comment,
-      replyAt,
-      from,
+      content, 
+      author,
       userId,
       created_At: Date.now(),
     });
 
-    commentInfo.save();
+    await commentInfo.save();
 
-    res.status(200).json(commentInfo);
+    const updatedCommentInfo = await Comments.findById(id)
+      .populate({
+        path: "replies.userId",
+        select: "firstName lastName location profileUrl",
+      })
+      .populate({
+        path: "replies.likes",
+        select: "firstName lastName location profileUrl",
+      })
+      .populate({
+        path: "replies",
+        select: "content author userId likes created_At",
+      });
+
+    res.status(200).json(updatedCommentInfo);
   } catch (error) {
     console.log(error);
     res.status(404).json({ message: error.message });

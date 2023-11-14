@@ -5,24 +5,20 @@ const CommentSchema = new mongoose.Schema(
     userId: { type: Schema.Types.ObjectId, ref: "User" },
     postId: { type: Schema.Types.ObjectId, ref: "Post" },
     content: { type: String, required: true },
-    from: { type: String, required: true },
+    author: { type: String, ref: "Post" },
     replies: [
       {
         rid: { type: mongoose.Schema.Types.ObjectId },
         userId: { type: Schema.Types.ObjectId, ref: "User" },
-        from: { type: String },
-        replyAt: { type: String },
+        author: { type: String, ref: "Post" },
         content: { type: String },
-        created_At: { type: Date, default: Date.now() },
-        updated_At: { type: Date, default: Date.now() },
-        likes: [{ type: String }],
+        likes: [{ type: Schema.Types.ObjectId, ref: "Like" }],
       },
     ],
-    likes: [{ type: String }],
+    likes: [{ type: Schema.Types.ObjectId, ref: "Like" }],
   },
   { timestamps: true }
 );
-
 
 const Comments = mongoose.model("Comments", CommentSchema);
 

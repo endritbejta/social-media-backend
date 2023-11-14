@@ -1,6 +1,14 @@
 import express from "express";
 import path from "path";
-import { getUser, getAllUsers } from "../controllers/user.js";
+
+import {
+  getUser,
+  getAllUsers,
+  createUserAbout,
+  getUserAbout,
+  updateUserAbout,
+  deleteUserAbout,
+} from "../controllers/user.js";
 import { getUserPosts } from "../controllers/post.js";
 import { verifyEmail } from "../controllers/user.js";
 
@@ -15,6 +23,10 @@ const router = express.Router();
 router.get("/users", getAllUsers);
 router.get("/users/:userId", getUser);
 router.get("/users/:userId/posts", getUserPosts);
+router.post("/users/:userId/about", createUserAbout);
+router.get("/users/:userId/about", getUserAbout);
+router.put("/users/:userId/about", updateUserAbout);
+router.delete("/users/:aboutId", deleteUserAbout);
 
 // router.get("/verified", (req, res) => {
 //   res.sendFile(path.join(__dirname, "./views/build", "index.html"));
