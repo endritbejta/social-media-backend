@@ -7,6 +7,7 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import  createLikeNotification  from "../models/notification.js";
 
 //Mos ma fshini ju lutem
 // export const createPost = async (req, res) => {
@@ -253,23 +254,30 @@ export const likePost = async (req, res) => {
     if (like !== null) {
       return res.status(400).json({ message: "Post already liked" });
     }
+
     const user = await User.findOne({
       _id: userId,
     });
+
     if (!user) {
       return res.status(400).json({ message: "User not found" });
     }
 
     const { firstName, lastName } = user;
-
     const author = firstName + " " + lastName;
+
     const newLike = new Like({
       postId,
       userId,
       author: author,
     });
 
-    newLike.save();
+    await newLike.save();
+
+// Create a notification when someone likes a post
+const post = await Post.findById(postId);
+await createLikeNotification(userId, postId, post.userId);
+
     return res.status(201).json({
       message: "Post liked",
       newLike: { author, postId, userId },
@@ -278,7 +286,6 @@ export const likePost = async (req, res) => {
     return res.status(500).json({ message: err.message });
   }
 };
-
 export const unlikePost = async (req, res) => {
   try {
     const postId = req.params.postId;
