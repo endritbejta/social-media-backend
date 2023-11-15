@@ -1,8 +1,7 @@
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import Users from "../models/User.js";
+import { compareString, createJWT } from "../utils/helpers.js";
 import { sendVerificationEmail } from "../utils/sendEmail.js";
-
-import User from "../models/User.js";
 
 export const register = async (req, res) => {
   try {
@@ -13,7 +12,6 @@ export const register = async (req, res) => {
       password,
       confirmPassword,
       gender,
-      friends,
       birthday,
     } = req.body;
 
@@ -23,62 +21,84 @@ export const register = async (req, res) => {
         .json({ error: "Password confirmation does not match the password." });
     }
 
+    const user = await Users.findOne({ email: email });
+
+    if (user) return res.status(400).json({ error: "User exists!" });
+
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
 
-    const newUser = new User({
+    const newUser = await Users.create({
       firstName,
       lastName,
       email,
       password: passwordHash,
       confirmPassword: passwordHash,
       gender,
-      friends,
       birthday,
     });
-    const user = await User.findOne({ email: email });
 
-    if (user) {
-      return res.status(400).json({ error: "User exists!" });
-    } else {
-      const savedUser = await newUser.save();
+    const savedUser = await newUser.save();
 
-      // EMAIL VERIFICATION
-      sendVerificationEmail(savedUser, res);
+    // EMAIL VERIFICATION
+    sendVerificationEmail(savedUser, res);
 
-      // return res.status(201).json(savedUser);
-    }
+    // return res.status(201).json(savedUser);
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
 };
 
-export const login = async (req, res) => {
+export const login = async (req, res, next) => {
+  const { email, password } = req.body;
+
   try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email: email });
+    //validation
+    if (!email || !password) {
+      next("Please Provide User Credentials");
+      return;
+    }
+
+    // find user by email
+    const user = await Users.findOne({ email }).select("+password").populate({
+      path: "friends",
+      select: "firstName lastName location profileUrl",
+    });
+
     if (!user) {
-      return res.status(400).json({ error: "Invalid credentials!" });
+      next("Invalid email or password");
+      return;
     }
-    if (user && user.verified == false) {
-      return res
-        .status(400)
-        .json({ error: "Please verify your account first!" });
-    }
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch && user.verified == true) {
-      return res.status(400).json({ error: "Invalid credentials!" });
-    } else {
-      const token = jwt.sign(
-        { email: user.email, password: password },
-        `${process.env.JWT_SECRET}`,
-      );
 
-      delete user.password;
-
-      return res.status(200).json({ token, user });
+    if (!user.verified) {
+      res.status(401).json({
+        success: false,
+        message:
+          "User not verified. Please check your email for verification instructions.",
+      });
+      return;
     }
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
+
+    // compare password
+    const isMatch = await compareString(password, user?.password);
+
+    if (!isMatch) {
+      next("Invalid email or password");
+      return;
+    }
+
+    user.password = undefined;
+
+    const token = createJWT(user?._id);
+
+    res.status(201).json({
+      success: true,
+      message: "Login successfully",
+      user,
+      token,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({ message: error.message });
   }
 };
