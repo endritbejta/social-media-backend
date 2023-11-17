@@ -36,6 +36,7 @@ const UserSchema = new mongoose.Schema(
       },
     },
     friends: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    views: [{ type: String }],
     gender: {
       type: String,
       enum: ["Male", "Female", "Other"],
@@ -43,8 +44,9 @@ const UserSchema = new mongoose.Schema(
     birthday: {
       type: Date,
     },
+    verified: { type: Boolean, default: false },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const User = mongoose.model("User", UserSchema);

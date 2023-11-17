@@ -5,6 +5,7 @@ import {
   getPostPictures,
   createPost,
   getPosts,
+  getFeedPosts,
   getPost,
   updatePost,
   deletePost,
@@ -13,8 +14,10 @@ import {
   unlikePost,
   savePost,
   unsavePost,
+  getUserSavedPosts,
+  getAllSavedPosts,
 } from "../controllers/post.js";
-
+import verifyToken from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -24,6 +27,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 router.get("/uploads/:postId", getPostPictures);
 router.post("/posts", upload.array("images", 5), createPost);
 router.get("/posts", getPosts);
+router.get("/posts/feedPosts", getFeedPosts);
 router.get("/posts/:postId", getPost);
 router.put("/posts/:postId", updatePost);
 router.delete("/posts/:postId", deletePost);
@@ -36,7 +40,9 @@ router.delete("/posts/:postId/unlike", unlikePost);
 // Save post
 router.post("/posts/:postId/save", savePost);
 router.delete("/posts/:postId/unsave", unsavePost);
+router.get("/savedPosts/:userId", getUserSavedPosts);
+router.get("/savedPosts", getAllSavedPosts);
 
-router.post("/posts/like",likePost);
+router.post("/posts/like", likePost);
 
 export default router;

@@ -35,6 +35,7 @@ export const friendRequest = async (req, res, next) => {
     res.status(201).json({
       success: true,
       message: "Friend Request sent successfully",
+      data: newRes,
     });
   } catch (error) {
     console.log(error);
@@ -126,6 +127,7 @@ export const acceptRequest = async (req, res, next) => {
     res.status(201).json({
       success: true,
       message: "Friend Request " + status,
+      data: newRes,
     });
   } catch (error) {
     console.log(error);
@@ -137,6 +139,138 @@ export const acceptRequest = async (req, res, next) => {
   }
 };
 
-// !  profileviews
+export const getSentFriendRequests = async (req, res) => {
+  try {
+    const { userId } = req.body.user;
 
-// ! sugested friends
+    const sentRequests = await FriendRequest.find({
+      requestFrom: userId,
+      requestStatus: "Pending",
+    })
+      .populate({
+        path: "requestTo",
+        select: "firstName lastName profileUrl",
+      })
+      .limit(10)
+      .sort({
+        _id: -1,
+      });
+
+    res.status(200).json({
+      success: true,
+      data: sentRequests,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Error fetching sent friend requests",
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+export const cancelRequest = async (req, res) => {
+  try {
+    const { rid } = req.body;
+    const response = await FriendRequest.findByIdAndDelete({ _id: rid });
+
+    res.status(201).json({
+      success: true,
+      message: "Friend Request canceled",
+      data: response,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "auth cancel error",
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+export const deleteFriend = async (req, res) => {
+  try {
+    const id = req.body.user.userId;
+    const { did } = req.body;
+    const user = await Users.findById(id);
+    const friend = await Users.findById(did);
+
+    user.friends.remove(did);
+    await user.save();
+
+    friend.friends.remove(id);
+    await friend.save();
+
+    await FriendRequest.findOneAndDelete({
+      $or: [
+        { requestFrom: id, requestTo: did },
+        { requestFrom: did, requestTo: id },
+      ],
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Friend Deleted",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "auth delete error",
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+export const profileViews = async (req, res) => {
+  try {
+    const { userId } = req.body.user;
+    const { id } = req.body;
+
+    const user = await Users.findById(id);
+
+    user.views.push(userId);
+
+    await user.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "auth error",
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+export const suggestedFriends = async (req, res) => {
+  try {
+    const { userId } = req.body.user;
+
+    let queryObject = {};
+
+    queryObject._id = { $ne: userId };
+
+    queryObject.friends = { $nin: userId };
+
+    let queryResult = Users.find(queryObject)
+      .limit(10)
+      .select("firstName lastName profileUrl");
+
+    const suggestedFriends = await queryResult;
+
+    res.status(200).json({
+      success: true,
+      data: suggestedFriends,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(404).json({ message: error.message });
+  }
+};
