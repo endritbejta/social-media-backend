@@ -9,6 +9,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import  createLikeNotification  from "../models/notification.js";
 
+
 //Mos ma fshini ju lutem
 // export const createPost = async (req, res) => {
 //   try {
@@ -299,7 +300,9 @@ export const unlikePost = async (req, res) => {
     if (like === null) {
       return res.status(400).json({ message: "Post is not liked" });
     }
-
+    const post = await Post.findById(postId);
+    await createunLikeNotification(userId, postId, post.userId);
+    
     await Like.deleteOne({ _id: like._id });
     return res.status(201).json({ message: "Post unliked" });
   } catch (err) {
