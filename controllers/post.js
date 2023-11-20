@@ -35,10 +35,19 @@ export const createPost = async (req, res) => {
 
     const { firstName, lastName } = user;
 
+    let picture = [];
+
+    for (let i = 0; i < pictures.length; i++) {
+      const url =
+        "https://postify-development-images.s3.eu-central-1.amazonaws.com/";
+      const pictureUrl = url + pictures[i];
+      picture.push(pictureUrl);
+    }
+
     const newPost = new Post({
       userId: userId,
       description: description,
-      pictures,
+      pictures: picture,
       author: firstName + " " + lastName,
     });
 
