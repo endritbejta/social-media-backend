@@ -9,6 +9,8 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import  createLikeNotification  from "../models/notification.js";
+
 
 //Mos ma fshini ju lutem
 export const createPost = async (req, res) => {
@@ -315,29 +317,25 @@ export const likePost = async (req, res) => {
     if (like !== null) {
       return res.status(400).json({ message: "Post already liked" });
     }
+
     const user = await User.findOne({
       _id: userId,
     });
+
     if (!user) {
       return res.status(400).json({ message: "User not found" });
     }
 
     const { firstName, lastName } = user;
-
     const author = firstName + " " + lastName;
+
     const newLike = new Like({
       postId,
       userId,
       author: author,
     });
 
-    await newLike.save();
-    await Post.findByIdAndUpdate(
-      postId,
-      { $push: { likes: newLike } },
-      { new: true }
-    );
-
+    newLike.save();
     return res.status(201).json({
       message: "Post liked",
       newLike: { author, postId, userId },
@@ -346,7 +344,6 @@ export const likePost = async (req, res) => {
     return res.status(500).json({ message: err.message });
   }
 };
-
 export const unlikePost = async (req, res) => {
   try {
     const postId = req.params.postId;
@@ -367,16 +364,6 @@ export const unlikePost = async (req, res) => {
     if (like === null) {
       return res.status(400).json({ message: "Post is not liked" });
     }
-
-    const { firstName, lastName } = user;
-
-    const author = firstName + " " + lastName;
-
-    await Post.findByIdAndUpdate(
-      postId,
-      { $pull: { likes: like._id } },
-      { new: true }
-    );
 
     await Like.deleteOne({ _id: like._id });
     return res.status(201).json({ message: "Post unliked", userId, postId });

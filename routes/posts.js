@@ -17,7 +17,6 @@ import {
   getUserSavedPosts,
   getAllSavedPosts,
 } from "../controllers/post.js";
-import verifyToken from "../middleware/auth.js";
 
 const router = express.Router();
 
