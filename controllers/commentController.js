@@ -18,16 +18,9 @@ export const createComment = async (req, res) => {
       _id: userId,
     });
 
-<<<<<<< HEAD
     if (!user) {
       return res.status(400).json({ message: "User not found" });
     }
-=======
-    const newComment = await comment.save();
-// Create a notification when someone likes a post
-  const post = await Post.findById(postId);
-  await createLikeNotification(userId, postId, post.userId);
->>>>>>> testbranch
 
     const { firstName, lastName } = user;
 
