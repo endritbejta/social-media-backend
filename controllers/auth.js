@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import Users from "../models/User.js";
 import { compareString, createJWT } from "../utils/helpers.js";
+import { sendVerificationEmail } from "../utils/sendEmail.js";
 
 export const register = async (req, res) => {
   try {
@@ -39,7 +39,11 @@ export const register = async (req, res) => {
     });
 
     const savedUser = await newUser.save();
-    return res.status(201).json(savedUser);
+
+    // EMAIL VERIFICATION
+    sendVerificationEmail(savedUser, res);
+
+    // return res.status(201).json(savedUser);
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
@@ -63,6 +67,15 @@ export const login = async (req, res, next) => {
 
     if (!user) {
       next("Invalid email or password");
+      return;
+    }
+
+    if (!user.verified) {
+      res.status(401).json({
+        success: false,
+        message:
+          "User not verified. Please check your email for verification instructions.",
+      });
       return;
     }
 

@@ -8,10 +8,10 @@ export const createComment = async (req, res) => {
     const userId = req.body.userId;
     const { content } = req.body;
 
-    if (!content || !postId) {
+    if (!content || !postId || !userId) {
       return res
         .status(400)
-        .json({ message: "Content and PostId are required" });
+        .json({ message: "Content, PostId, and UserId are required" });
     }
 
     const user = await User.findOne({
@@ -37,7 +37,7 @@ export const createComment = async (req, res) => {
     await Post.findByIdAndUpdate(
       postId,
       { $push: { comments: comment } },
-      { new: true }
+      { new: true },
     );
 
     return res.status(201).json(comment);
@@ -54,7 +54,7 @@ export const updateComment = async (req, res) => {
     const updatedComment = await Comments.findByIdAndUpdate(
       id,
       { content },
-      { new: true }
+      { new: true },
     );
 
     return res.json(updatedComment);
@@ -83,7 +83,7 @@ export const deleteComment = async (req, res) => {
     await Post.findByIdAndUpdate(
       postId,
       { $pull: { comments: deletedComment._id } },
-      { new: true }
+      { new: true },
     );
 
     await Comments.deleteOne({ _id: deletedComment._id });
@@ -151,18 +151,18 @@ export const likePostComment = async (req, res, next) => {
               _id: rid,
             },
           },
-        }
+        },
       );
 
       const index = replyComments?.replies[0]?.likes.findIndex(
-        (i) => i === String(userId)
+        (i) => i === String(userId),
       );
 
       if (index === -1) {
         replyComments.replies[0].likes.push(userId);
       } else {
         replyComments.replies[0].likes = replyComments.replies[0]?.likes.filter(
-          (i) => i !== String(userId)
+          (i) => i !== String(userId),
         );
       }
 
@@ -216,7 +216,7 @@ export const commentPost = async (req, res, next) => {
 export const replyPostComment = async (req, res, next) => {
   try {
     const userId = req.body.userId;
-    const { comment } = req.body;
+    const { content } = req.body;
     const { id } = req.params;
 
     const user = await User.findOne({
@@ -231,21 +231,36 @@ export const replyPostComment = async (req, res, next) => {
 
     const author = firstName + " " + lastName;
 
-    if (comment === null) {
-      return res.status(404).json({ message: "Comment is required." });
+    if (!content) {
+      return res.status(404).json({ message: "Content is required." });
     }
+
     const commentInfo = await Comments.findById(id);
 
     commentInfo.replies.push({
-      comment,
+      content,
       author,
       userId,
       created_At: Date.now(),
     });
 
-    commentInfo.save();
+    await commentInfo.save();
 
-    res.status(200).json(commentInfo);
+    const updatedCommentInfo = await Comments.findById(id)
+      .populate({
+        path: "replies.userId",
+        select: "firstName lastName location profileUrl",
+      })
+      .populate({
+        path: "replies.likes",
+        select: "firstName lastName location profileUrl",
+      })
+      .populate({
+        path: "replies",
+        select: "content author userId likes created_At",
+      });
+
+    res.status(200).json(updatedCommentInfo);
   } catch (error) {
     console.log(error);
     res.status(404).json({ message: error.message });
