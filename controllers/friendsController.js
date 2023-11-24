@@ -231,7 +231,9 @@ export const profileViews = async (req, res) => {
 
     const user = await Users.findById(id);
 
-    user.views.push(userId);
+    if (id !== userId && !user.views.includes(userId)) {
+      user.views.push(userId);
+    }
 
     await user.save();
 
