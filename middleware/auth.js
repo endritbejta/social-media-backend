@@ -19,4 +19,5 @@ const verifyToken = async (req, res, next) => {
     next("Authentication failed");
   }
 };
+
 export default verifyToken;
