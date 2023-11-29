@@ -4,7 +4,6 @@ import About from "../models/About.js";
 import Verification from "../models/emailVerification.js";
 import { compareString, hashString } from "../utils/helpers.js";
 
-
 export const getUser = async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -185,16 +184,16 @@ export const verifyEmail = async (req, res) => {
                       const message = "Email verified successfully";
                       console.log("shaban1", freskim);
                       res.json(
-                        `/users/verified?status=success&message=${message}`,
+                        `/users/verified?status=success&message=${message}`
                       );
-                    },
+                    }
                   );
                 })
                 .catch((err) => {
                   console.log(err);
                   const message = "Verification failed or link is invalid";
                   res.redirect(
-                    `/users/verified?status=error&message=${message}`,
+                    `/users/verified?status=error&message=${message}`
                   );
                 });
             } else {
@@ -215,6 +214,38 @@ export const verifyEmail = async (req, res) => {
   } catch (error) {
     console.log("err2", err);
     res.redirect(`/users/verified?message=`);
+  }
+};
+
+//Whoever wants to verify user manually and not use personal email or create one can use this method. Will be deleted on production
+export const verifyUserManually = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const user = await User.findOne({ _id: userId });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    await User.findByIdAndUpdate(userId, { verified: true });
+
+    return res.status(201).json({ message: "User verified successfully" });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const user = await User.findOne({ _id: userId });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    await User.deleteOne({ _id: userId });
+    return res
+      .status(201)
+      .json({ message: "User deleted successfully", _id: userId });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
   }
 };
 
