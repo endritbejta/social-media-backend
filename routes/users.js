@@ -7,6 +7,8 @@ import {
   createUserAbout,
   getUserAbout,
   updateUserAbout,
+  verifyUserManually,
+  deleteUser,
   deleteUserAbout,
 } from "../controllers/user.js";
 import { getUserPosts } from "../controllers/post.js";
@@ -26,6 +28,8 @@ router.get("/users/:userId/posts", getUserPosts);
 router.post("/users/:userId/about", createUserAbout);
 router.get("/users/:userId/about", getUserAbout);
 router.put("/users/:userId/about", updateUserAbout);
+router.put("/users/:userId/", verifyUserManually);
+router.delete("/users/:userId", deleteUser);
 router.delete("/users/:aboutId", deleteUserAbout);
 
 // router.get("/verified", (req, res) => {

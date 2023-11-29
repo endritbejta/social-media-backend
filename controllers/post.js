@@ -228,6 +228,9 @@ export const deletePost = async (req, res) => {
       return res.status(404).json({ message: "Post not found" });
     }
 
+    await Comments.deleteMany({ postId: postId });
+    await Like.deleteMany({ postId: postId });
+
     await post.deleteOne();
 
     return res.status(200).json({ message: "Post deleted successfully" });
