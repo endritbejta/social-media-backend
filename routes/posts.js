@@ -25,7 +25,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 // Post
 router.get("/uploads/:postId", getPostPictures);
-router.post("/posts", upload.array("images", 5), createPost);
+router.post("/posts", upload.array("pictures", 5), createPost);
 router.get("/posts", getPosts);
 router.get("/posts/feedPosts", getFeedPosts);
 router.get("/posts/:postId", getPost);
