@@ -17,12 +17,18 @@ export const createPost = async (req, res) => {
 
     console.log("req.body", req.body);
     console.log("req.files", req.files);
+    // console.log("req", req);
     let pictures = [];
 
     // If there are any pictures, store them to S3
     if (req.files) {
-      const keys = await insertMultipleObjects(req.files);
-      pictures = keys;
+      try{
+        const keys = await insertMultipleObjects(req.files);
+        pictures = keys;
+      }catch(err){
+        console.error(err)
+        throw err
+      }
     }
 
     const user = await User.findOne({

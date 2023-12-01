@@ -9,6 +9,9 @@ dotenv.config();
 const AWS_REGION = process.env.AWS_REGION;
 const AWS_S3_BUCKET = process.env.AWS_S3_BUCKET;
 
+console.log("AWS_REGION:", AWS_REGION);
+console.log("AWS_S3_BUCKET:", AWS_S3_BUCKET);
+
 const client = new S3Client({ region: AWS_REGION });
 
 /**
@@ -18,13 +21,19 @@ const client = new S3Client({ region: AWS_REGION });
  * @returns {string} - File name
  */
 export const insertObject = async (key, file) => {
-  const putObjectCommand = new PutObjectCommand({
-    Bucket: AWS_S3_BUCKET,
-    Key: key,
-    Body: file,
-  });
-  await client.send(putObjectCommand);
-  return key;
+  try {
+    const putObjectCommand = new PutObjectCommand({
+      Bucket: AWS_S3_BUCKET,
+      Key: key,
+      Body: file,
+    });
+    await client.send(putObjectCommand);
+    return key;
+    
+  } catch (error) {
+    console.error(error);
+    throw error
+  }
 };
 
 /**
@@ -34,21 +43,22 @@ export const insertObject = async (key, file) => {
  */
 export const insertMultipleObjects = async (files) => {
   let keys = [];
-  const putObjectCommands = [];
 
   for (const file of files) {
-    console.log("file", file);
     const fileName = `${generateRandomString()}-${file.originalname}`;
     const putObjectCommand = new PutObjectCommand({
       Bucket: AWS_S3_BUCKET,
       Key: fileName,
       Body: file.buffer,
     });
-
-    putObjectCommands.push(client.send(putObjectCommand));
-    keys.push(fileName);
+    
+    try {
+      const data = await client.send(putObjectCommand);
+      console.log("File uploaded successfully", data);
+      keys.push(fileName);
+    } catch (error) {
+      console.error("Error uploading file", fileName, error);
+    }
   }
-
-  await Promise.all(putObjectCommands);
   return keys;
 };
