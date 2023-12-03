@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+
 import Users from "../models/User.js";
 import { compareString, createJWT } from "../utils/helpers.js";
 import { sendVerificationEmail } from "../utils/sendEmail.js";

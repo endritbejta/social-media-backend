@@ -6,7 +6,6 @@ import SavedPost from "../models/SavedPost.js";
 import { insertMultipleObjects } from "../aws/S3Client.js";
 
 import path from "path";
-import fs from "fs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
@@ -22,12 +21,12 @@ export const createPost = async (req, res) => {
 
     // If there are any pictures, store them to S3
     if (req.files) {
-      try{
+      try {
         const keys = await insertMultipleObjects(req.files);
         pictures = keys;
-      }catch(err){
-        console.error(err)
-        throw err
+      } catch (err) {
+        console.error(err);
+        throw err;
       }
     }
 
