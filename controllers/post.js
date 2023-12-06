@@ -199,8 +199,20 @@ export const getUserPosts = async (req, res) => {
 
 export const updatePost = async (req, res) => {
   try {
-    const { postId } = req.params;
-    const { description, picture } = req.body;
+    const postId = req.params.postId;
+    const description = req.body.description;
+
+    let pictures = [];
+
+    if (req.files) {
+      try {
+        const keys = await insertMultipleObjects(req.files);
+        pictures = keys;
+      } catch (err) {
+        console.error(err);
+        throw err;
+      }
+    }
 
     const post = await Post.findById(postId);
     if (!post) {
@@ -210,15 +222,21 @@ export const updatePost = async (req, res) => {
     if (description !== undefined) {
       post.description = description;
     }
+    let picture = [];
 
-    if (picture !== undefined) {
-      post.picture = picture;
+    if (pictures.length === 0) {
+      post.pictures = [];
+    } else if (pictures.length > 0) {
+      const url =
+        "https://postify-development-images.s3.eu-central-1.amazonaws.com/";
+      picture = pictures.map((key) => url + key);
+      post.pictures = [];
+      post.pictures = picture;
     }
-    post.updatedAt = new Date();
 
     await post.save();
 
-    return res.status(200).json({ edited: true, post });
+    return res.status(200).json(post);
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
