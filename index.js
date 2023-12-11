@@ -3,11 +3,13 @@ import dotenv from "dotenv";
 import cors from "cors";
 import morgan from "morgan";
 import mongoose from "mongoose";
+
 import friendsRoutes from "./routes/friends.routes.js";
 import authRoutes from "./routes/auth.js";
 import postRoutes from "./routes/posts.js";
 import userRoutes from "./routes/users.js";
 import commentRoutes from "./routes/comment.routes.js";
+import productRoutes from "./routes/product.js";
 
 dotenv.config();
 
@@ -28,12 +30,14 @@ app.use(postRoutes);
 app.use(userRoutes);
 app.use(commentRoutes);
 app.use(friendsRoutes);
+app.use(productRoutes);
 
 const MONGO_URL = process.env.MONGO_URL;
+const PORT = process.env.PORT || 9999;
 
 try {
   mongoose
-    .connect(process.env.MONGO_URL, {
+    .connect(MONGO_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     })
@@ -43,8 +47,6 @@ try {
 } catch (err) {
   console.log(`${err}: did not connect.`);
 }
-
-const PORT = process.env.PORT || 9999;
 
 app.listen(PORT, () => {
   console.log(`Listening on PORT ${PORT}`);
