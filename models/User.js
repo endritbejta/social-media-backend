@@ -14,6 +14,7 @@ const UserSchema = new mongoose.Schema(
       min: 2,
       max: 30,
     },
+    profilePicture: [{ type: String }],
     email: {
       type: String,
       required: true,
@@ -39,14 +40,14 @@ const UserSchema = new mongoose.Schema(
     views: [{ type: String }],
     gender: {
       type: String,
-      enum: ["Male", "Female", "Other"],
+      enum: ["Male", "Female", "Other", "Prefer not to say"],
     },
     birthday: {
       type: Date,
     },
     verified: { type: Boolean, default: false },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 const User = mongoose.model("User", UserSchema);

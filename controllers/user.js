@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import About from "../models/About.js";
 import Verification from "../models/emailVerification.js";
 import { compareString, hashString } from "../utils/helpers.js";
+import { insertMultipleObjects } from "../aws/S3Client.js";
 
 export const getUser = async (req, res) => {
   try {
@@ -244,6 +245,43 @@ export const deleteUser = async (req, res) => {
     return res
       .status(201)
       .json({ message: "User deleted successfully", _id: userId });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+export const setProfilePicture = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const user = await User.findOne({ _id: userId });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    let profilePicture = [];
+
+    if (req.files) {
+      try {
+        const keys = await insertMultipleObjects(req.files);
+        profilePicture = keys;
+      } catch (err) {
+        console.error(err);
+        throw err;
+      }
+    }
+
+    let picture = [];
+
+    if (profilePicture.length > 0) {
+      const url =
+        "https://postify-development-images.s3.eu-central-1.amazonaws.com/";
+      picture = profilePicture.map((key) => url + key);
+      user.profilePicture = picture;
+    }
+
+    await user.save();
+    return res.status(201).json(user);
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }

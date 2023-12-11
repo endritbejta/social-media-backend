@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import multer from "multer";
 
 import {
   getUser,
@@ -10,6 +11,7 @@ import {
   verifyUserManually,
   deleteUser,
   deleteUserAbout,
+  setProfilePicture,
 } from "../controllers/user.js";
 import { getUserPosts } from "../controllers/post.js";
 import { verifyEmail } from "../controllers/user.js";
@@ -21,8 +23,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const router = express.Router();
 
+const upload = multer({ storage: multer.memoryStorage() });
+
 router.get("/users", getAllUsers);
 router.get("/users/:userId", getUser);
+router.put(
+  "/users/profilePicture/:userId",
+  upload.array("profilePicture", 1),
+  setProfilePicture
+);
 router.get("/users/:userId/posts", getUserPosts);
 router.post("/users/:userId/about", createUserAbout);
 router.get("/users/:userId/about", getUserAbout);
