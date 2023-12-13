@@ -222,11 +222,10 @@ export const updatePost = async (req, res) => {
     if (description !== undefined) {
       post.description = description;
     }
+
     let picture = [];
 
-    if (pictures.length === 0) {
-      post.pictures = [];
-    } else if (pictures.length > 0) {
+    if (pictures.length > 0) {
       const url =
         "https://postify-development-images.s3.eu-central-1.amazonaws.com/";
       picture = pictures.map((key) => url + key);
