@@ -12,6 +12,7 @@ import {
   deleteUser,
   deleteUserAbout,
   setProfilePicture,
+  updateUser,
 } from "../controllers/user.js";
 import { getUserPosts } from "../controllers/post.js";
 import { verifyEmail } from "../controllers/user.js";
@@ -36,6 +37,7 @@ router.get("/users/:userId/posts", getUserPosts);
 router.post("/users/:userId/about", createUserAbout);
 router.get("/users/:userId/about", getUserAbout);
 router.put("/users/:userId/about", updateUserAbout);
+router.put("/update/:userId", updateUser);
 router.put("/users/:userId/", verifyUserManually);
 router.delete("/users/:userId", deleteUser);
 router.delete("/users/:aboutId", deleteUserAbout);

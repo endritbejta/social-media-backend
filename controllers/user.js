@@ -287,6 +287,42 @@ export const setProfilePicture = async (req, res) => {
   }
 };
 
+export const updateUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { firstName, lastName, gender, email } = req.body;
+
+    // Validate if the provided user ID is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid user ID format." });
+    }
+
+    // Update user details
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          firstName,
+          lastName,
+          gender,
+          email,
+        },
+      },
+      { new: true }
+    );
+
+    // Check if the user was found and updated
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
+
 // export const requestPasswordReset = async (req, res) => {
 //   try {
 //     const { email } = req.body;
