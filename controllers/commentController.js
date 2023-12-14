@@ -7,6 +7,7 @@ export const createComment = async (req, res) => {
     const postId = req.body.postId;
     const userId = req.body.userId;
     const { content } = req.body;
+    const commenterProfilePicture = req.body.commenterProfilePicture;
 
     if (!content || !postId || !userId) {
       return res
@@ -22,7 +23,7 @@ export const createComment = async (req, res) => {
       return res.status(400).json({ message: "User not found" });
     }
 
-    const { firstName, lastName } = user;
+    const { firstName, lastName, profilePicture } = user;
 
     const author = firstName + " " + lastName;
     const comment = new Comments({
@@ -30,6 +31,7 @@ export const createComment = async (req, res) => {
       userId,
       content: content,
       author: author,
+      commenterProfilePicture: profilePicture
     });
 
     await comment.save();
