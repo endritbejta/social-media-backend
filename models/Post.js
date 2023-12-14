@@ -33,6 +33,8 @@ const PostSchema = new mongoose.Schema(
         default: [],
       },
     ],
+    userProfilePicture: [{ type: String }],
+
   },
   { timestamps: true }
 );
