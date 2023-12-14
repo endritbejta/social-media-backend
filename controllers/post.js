@@ -328,7 +328,6 @@ export const getAllSavedPosts = async (req, res) => {
     return res.status(500).json({ message: err.message });
   }
 };
-
 export const likePost = async (req, res) => {
   try {
     const postId = req.params.postId;
@@ -342,29 +341,36 @@ export const likePost = async (req, res) => {
     if (like !== null) {
       return res.status(400).json({ message: "Post already liked" });
     }
+
     const user = await User.findOne({
       _id: userId,
     });
+
     if (!user) {
       return res.status(400).json({ message: "User not found" });
     }
 
     const { firstName, lastName } = user;
+    const author = `${firstName} ${lastName}`;
 
-    const author = firstName + " " + lastName;
     const newLike = new Like({
       postId,
       user,
-      author: author,
+      author,
     });
 
     await newLike.save();
 
-// Create a notification when someone likes a post
-const post = await Post.findById(postId);
-await createLikeNotification(userId, postId, post.userId);
+    // Create a notification when someone likes a post
+    const post = await Post.findById(postId);
+    await createLikeNotification(userId, postId, post.userId);
 
-       
+    return res.status(200).json({ message: "Post liked successfully" });
+  } catch (error) {
+    console.error('Error liking post:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
     export const getNotificationsByUserId = async (req, res) => {
       try {
         const userId = req.body.userId;
