@@ -1,19 +1,13 @@
 import Comments from "../models/CommentModel.js";
 import Post from "../models/Post.js";
 import User from "../models/User.js";
+import Notification from "../models/notificationModel.js";
+import { createCommentNotification }  from "../models/notification.js";
 
 export const createComment = async (req, res) => {
   try {
-    const postId = req.body.postId;
-    const userId = req.body.userId;
-    const { content } = req.body;
-    const commenterProfilePicture = req.body.commenterProfilePicture;
-
-    if (!content || !postId || !userId) {
-      return res
-        .status(400)
-        .json({ message: "Content, PostId, and UserId are required" });
-    }
+    const { content, postId, from } = req.body;
+    const userId = from;
 
     const user = await User.findOne({
       _id: userId,
@@ -23,9 +17,16 @@ export const createComment = async (req, res) => {
       return res.status(400).json({ message: "User not found" });
     }
 
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
     const { firstName, lastName, profilePicture } = user;
 
     const author = firstName + " " + lastName;
+    const post = await Post.findById(postId);
+    await createCommentNotification(author, postId, post.userId);
+
+    
     const comment = new Comments({
       postId,
       userId,

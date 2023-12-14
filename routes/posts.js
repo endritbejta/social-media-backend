@@ -12,6 +12,7 @@ import {
   getLikesForPost,
   likePost,
   unlikePost,
+  getNotificationsByUserId,
   savePost,
   unsavePost,
   getUserSavedPosts,
@@ -43,6 +44,8 @@ router.delete("/posts/:postId/unsave", unsavePost);
 router.get("/savedPosts/:userId", getUserSavedPosts);
 router.get("/savedPosts", getAllSavedPosts);
 
+// Get notifications
+router.post("/posts/notifications", getNotificationsByUserId);
 router.post("/posts/like", likePost);
 
 export default router;

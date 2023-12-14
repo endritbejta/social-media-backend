@@ -5,6 +5,8 @@ import Comments from "../models/CommentModel.js";
 import SavedPost from "../models/SavedPost.js";
 import { insertMultipleObjects } from "../aws/S3Client.js";
 
+import Notification from "../models/notificationModel.js";
+
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -326,7 +328,6 @@ export const getAllSavedPosts = async (req, res) => {
     return res.status(500).json({ message: err.message });
   }
 };
-
 export const likePost = async (req, res) => {
   try {
     const postId = req.params.postId;
@@ -340,37 +341,50 @@ export const likePost = async (req, res) => {
     if (like !== null) {
       return res.status(400).json({ message: "Post already liked" });
     }
+
     const user = await User.findOne({
       _id: userId,
     });
+
     if (!user) {
       return res.status(400).json({ message: "User not found" });
     }
 
     const { firstName, lastName } = user;
+    const author = `${firstName} ${lastName}`;
 
-    const author = firstName + " " + lastName;
     const newLike = new Like({
       postId,
-      userId,
-      author: author,
+      user,
+      author,
     });
 
     await newLike.save();
-    await Post.findByIdAndUpdate(
-      postId,
-      { $push: { likes: newLike } },
-      { new: true }
-    );
 
-    return res.status(201).json({
-      message: "Post liked",
-      newLike: { author, postId, userId },
-    });
-  } catch (err) {
-    return res.status(500).json({ message: err.message });
+    // Create a notification when someone likes a post
+    const post = await Post.findById(postId);
+    await createLikeNotification(userId, postId, post.userId);
+
+    return res.status(200).json({ message: "Post liked successfully" });
+  } catch (error) {
+    console.error('Error liking post:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };
+    export const getNotificationsByUserId = async (req, res) => {
+      try {
+        const userId = req.body.userId;
+    
+        const notifications = await Notification.find({ userId: userId });
+    
+        const messageArray = notifications.map(notification => notification.message);
+
+        res.status(200).json({ messages: messageArray });
+      } catch (error) {
+        console.error('Error getting notifications:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    };
 
 export const unlikePost = async (req, res) => {
   try {
