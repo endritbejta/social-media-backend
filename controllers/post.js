@@ -38,8 +38,7 @@ export const createPost = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const { firstName, lastName } = user;
-
+    const { firstName, lastName, profilePicture } = user;
     let picture = [];
 
     for (let i = 0; i < pictures.length; i++) {
@@ -54,10 +53,11 @@ export const createPost = async (req, res) => {
       description: description,
       pictures: picture,
       author: firstName + " " + lastName,
+      userProfilePicture: profilePicture
     });
 
     await newPost.save();
-
+    console.log(newPost);
     return res.status(201).json(newPost);
   } catch (err) {
     return res.status(500).json({ message: err.message });

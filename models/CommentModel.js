@@ -16,6 +16,7 @@ const CommentSchema = new mongoose.Schema(
       },
     ],
     likes: [{ type: Schema.Types.ObjectId, ref: "Like" }],
+    commenterProfilePicture: [{ type: String }],
   },
   { timestamps: true },
 );
