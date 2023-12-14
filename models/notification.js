@@ -14,13 +14,31 @@ export default async function createLikeNotification(userId, postId, postOwnerId
 
     await newNotification.save();
 
-    console.log('Like Notification created:', newNotification);
+    return newNotification;
+  } catch (error) {
+    console.error('Error creating like notification:', error);
+    throw error;
+  }
+}
+export async function createCommentNotification(userId, postId, postOwnerId) {
+  try {
+    const newNotification = new Notification({
+      userId: postOwnerId,
+      message: `${userId} commented on your post`,
+      postId: postId,
+      type: 'comment',
+      read: false,
+    });
+
+    await newNotification.save();
+
+    console.log('Comment Notification created:', newNotification);
 
     // You can fire socket.io events or use a message queue for real-time notifications
 
     return newNotification;
   } catch (error) {
-    console.error('Error creating like notification:', error);
+    console.error('Error creating comment notification:', error);
     throw error;
   }
 }

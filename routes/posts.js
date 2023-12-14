@@ -11,6 +11,7 @@ import {
   getLikesForPost,
   likePost,
   unlikePost,
+  getNotificationsByUserId,
   savePost,
   unsavePost,
 } from "../controllers/post.js";
@@ -36,6 +37,8 @@ router.delete("/posts/:postId/unlike", unlikePost);
 router.post("/posts/:postId/save", savePost);
 router.delete("/posts/:postId/unsave", unsavePost);
 
+// Get notifications
+router.post("/posts/notifications", getNotificationsByUserId);
 router.post("/posts/like",likePost);
 
 export default router;

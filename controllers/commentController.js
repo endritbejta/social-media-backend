@@ -1,12 +1,25 @@
 import Comments from "../models/CommentModel.js";
 import Post from "../models/Post.js";
 import User from "../models/User.js";
+import Notification from "../models/notificationModel.js";
+import { createCommentNotification }  from "../models/notification.js";
 
 export const createComment = async (req, res) => {
   try {
-    const { content, postId, from } = req.body;
-    const author = req.userId;
 
+    const { content, postId, from } = req.body;
+    const userId = from;
+
+    const user = await User.findOne({
+      _id: userId,
+    });
+    console.log(user)
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    const { firstName, lastName } = user;
+    const author = firstName + " " + lastName;
     const comment = new Comments({
       content,
       postId,
@@ -15,6 +28,9 @@ export const createComment = async (req, res) => {
     });
 
     const newComment = await comment.save();
+
+    const post = await Post.findById(postId);
+    await createCommentNotification(author, postId, post.userId);
 
     return res.status(201).json(newComment);
   } catch (error) {
