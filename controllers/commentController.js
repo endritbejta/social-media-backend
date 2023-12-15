@@ -6,13 +6,14 @@ import { createCommentNotification }  from "../models/notification.js";
 
 export const createComment = async (req, res) => {
   try {
+    console.log(req.body)
     const { content, postId, from } = req.body;
-    const userId = from;
+    const userId = req.body.userId;
 
     const user = await User.findOne({
       _id: userId,
     });
-
+    console.log(userId)
     if (!user) {
       return res.status(400).json({ message: "User not found" });
     }
@@ -30,7 +31,7 @@ export const createComment = async (req, res) => {
     const comment = new Comments({
       postId,
       userId,
-      content: content,
+      content: req.body.content,
       author: author,
       commenterProfilePicture: profilePicture
     });
