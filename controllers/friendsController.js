@@ -57,7 +57,7 @@ export const getFriendRequest = async (req, res) => {
     })
       .populate({
         path: "requestFrom",
-        select: "firstName lastName profileUrl",
+        select: "firstName lastName profilePicture",
       })
       .limit(10)
       .sort({
@@ -149,7 +149,7 @@ export const getSentFriendRequests = async (req, res) => {
     })
       .populate({
         path: "requestTo",
-        select: "firstName lastName profileUrl",
+        select: "firstName lastName profilePicture",
       })
       .limit(10)
       .sort({
@@ -262,8 +262,8 @@ export const suggestedFriends = async (req, res) => {
     queryObject.friends = { $nin: userId };
 
     let queryResult = Users.find(queryObject)
-      .limit(10)
-      .select("firstName lastName profileUrl");
+      .limit(4)
+      .select("firstName lastName profilePicture");
 
     const suggestedFriends = await queryResult;
 
