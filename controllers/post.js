@@ -338,9 +338,9 @@ export const likePost = async (req, res) => {
       userId,
     });
 
-    if (like !== null) {
-      return res.status(400).json({ message: "Post already liked" });
-    }
+    // if (like !== null) {
+    //   return res.status(400).json({ message: "Post already liked" });
+    // }
 
     const user = await User.findOne({
       _id: userId,
