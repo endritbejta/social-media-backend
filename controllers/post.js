@@ -338,9 +338,9 @@ export const likePost = async (req, res) => {
       userId,
     });
 
-    if (like !== null) {
-      return res.status(400).json({ message: "Post already liked" });
-    }
+    // if (like !== null) {
+    //   return res.status(400).json({ message: "Post already liked" });
+    // }
 
     const user = await User.findOne({
       _id: userId,
@@ -355,7 +355,7 @@ export const likePost = async (req, res) => {
 
     const newLike = new Like({
       postId,
-      user,
+      userId,
       author,
     });
 
@@ -364,8 +364,17 @@ export const likePost = async (req, res) => {
     // Create a notification when someone likes a post
     const post = await Post.findById(postId);
     await createLikeNotification(userId, postId, post.userId);
+    await Post.findByIdAndUpdate(
+      postId,
+      { $push: { likes: newLike } },
+      { new: true }
+    );
 
-    return res.status(200).json({ message: "Post liked successfully" });
+    return res.status(201).json({
+      message: "Post liked",
+      newLike: { author, postId, userId },
+    });
+    // return res.status(200).json({ message: "Post liked successfully", data: newLike });
   } catch (error) {
     console.error('Error liking post:', error);
     return res.status(500).json({ message: 'Internal server error' });
